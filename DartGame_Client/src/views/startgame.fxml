@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controllers.StartGameController"
+            prefWidth="1000" prefHeight="600">
+
+    <!-- Header -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
+            <Button text="← Quay lại" onAction="#handleBack"/>
+            <Label text="Dart Game 301" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- Updated main layout to center dartboard and fix scoreboard width -->
+    <center>
+        <HBox spacing="0">
+            <!-- Game area with dartboard and scoreboard -->
+            <VBox prefWidth="650" prefHeight="600" alignment="TOP_CENTER" spacing="0">
+                <!-- Dartboard area - centered in 450x400 container -->
+                <HBox prefWidth="650" prefHeight="400" alignment="CENTER">
+                    <Pane fx:id="gamePane" prefWidth="450" prefHeight="400" 
+                          style="-fx-border-color: black; -fx-background-color: #f5f5f5;">
+                    </Pane>
+                </HBox>
+                
+                <!-- Added separate pane for start button and instruction text -->
+                <VBox prefWidth="650" prefHeight="100" alignment="CENTER" spacing="10" 
+                      style="-fx-padding: 10;">
+                    <Button fx:id="startButton" text="START GAME" prefWidth="160" prefHeight="50"
+                            onAction="#handleGameAction"
+                            style="-fx-background-color: linear-gradient(to bottom, #4CAF50, #45a049); 
+                                   -fx-text-fill: white; 
+                                   -fx-font-weight: bold; 
+                                   -fx-font-size: 16px; 
+                                   -fx-border-radius: 8px; 
+                                   -fx-background-radius: 8px; 
+                                   -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5); 
+                                   -fx-cursor: hand; 
+                                   -fx-opacity: 0.95;"/>
+                    <Label fx:id="instructionLabel" text="Click START GAME to begin 301 Dart Game" 
+                           style="-fx-font-size: 14px; -fx-font-weight: bold;" alignment="CENTER_LEFT"/>
+                </VBox>
+                
+                <!-- Spacer to push scoreboard to bottom -->
+                <Region VBox.vgrow="ALWAYS"/>
+                
+                <!-- Scoreboard at bottom - reduced width to fit properly -->
+                <HBox prefWidth="570" prefHeight="100" alignment="CENTER" style="-fx-margin-bottom: 20px;">
+                    <Pane fx:id="scoreboardPane" prefWidth="570" prefHeight="100"
+                          style="-fx-border-color: black; -fx-background-color: #e0e0e0;">
+                    </Pane>
+                </HBox>
+            </VBox>
+
+            <!-- Chat area - 350x600 as per wireframe -->
+            <BorderPane prefWidth="350" prefHeight="600" 
+                       style="-fx-border-color: black; -fx-background-color: #ffffff;">
+                <top>
+                    <Label text="Chat" style="-fx-padding: 10; -fx-font-weight: bold;"/>
+                </top>
+                <center>
+                    <ListView fx:id="chatList" prefWidth="330" prefHeight="500"/>
+                </center>
+                <bottom>
+                    <HBox spacing="5" alignment="CENTER" style="-fx-padding: 5;">
+                        <TextField fx:id="chatInput" HBox.hgrow="ALWAYS"/>
+                        <Button text="Gửi" onAction="#handleSend"/>
+                    </HBox>
+                </bottom>
+            </BorderPane>
+        </HBox>
+    </center>
+</BorderPane>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controllers.HomeController"
+            prefWidth="800" prefHeight="600">
+
+    <VBox alignment="CENTER" spacing="15.0" 
+          AnchorPane.topAnchor="50" 
+          AnchorPane.leftAnchor="50" 
+          AnchorPane.rightAnchor="50">
+
+        <Label text="Chào mừng bạn đã đăng nhập!" style="-fx-font-size: 18px;"/>
+
+        <Button text="Bắt đầu game" onAction="#handleStartGame" maxWidth="200"/>
+        <Button text="Bảng xếp hạng" onAction="#handleRanking" maxWidth="200"/>
+        <Button text="Đăng xuất" onAction="#handleLogout" maxWidth="200"/>
+    </VBox>
+</AnchorPane>
