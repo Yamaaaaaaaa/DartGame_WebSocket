@@ -1,11 +1,12 @@
 package controllers;
 
 import btl_ltm_n3.Main;
+import static btl_ltm_n3.Main.socketHandler;
 
 public class HomeController {
     public void handleLogout() {
         try {
-            Main.setRoot("login");
+            socketHandler.logout();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -25,4 +26,5 @@ public class HomeController {
             e.printStackTrace();
         }
     }
+    
 }

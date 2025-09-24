@@ -1,12 +1,11 @@
 package controllers;
 
 import btl_ltm_n3.Main;
-import database.DBConnection;
+import static btl_ltm_n3.Main.socketHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert;
-import java.sql.*;
 
 public class LoginController {
     @FXML private TextField usernameField;
@@ -16,20 +15,12 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        try (Connection conn = DBConnection.getConnection()) {
-            String sql = "SELECT * FROM users WHERE username=? AND password=?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                Main.setRoot("home");
-            } else {
-                showAlert("Sai tên đăng nhập hoặc mật khẩu!");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (username.equals("")) {
+            System.out.println("Invalid username");    
+        } else if (password.equals("")) {
+            System.out.println("Invalid password"); 
+        } else {
+            socketHandler.login(username, password);
         }
     }
 

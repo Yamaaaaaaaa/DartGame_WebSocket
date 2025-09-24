@@ -14,11 +14,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import service.Client;
+import service.ClientManager;
 
 // DART - SERVER
 public class DartGame_Server extends Application {
     public static boolean isShutDown = false;
     public static ServerSocket ss;
+    public static ClientManager clientManager;
 
     @Override
     public void start(Stage primaryStage) {
@@ -44,6 +47,8 @@ public class DartGame_Server extends Application {
             int port = 99;
             ss = new ServerSocket(port);
             System.out.println("Created Server at port " + port + ".");
+            
+            clientManager = new ClientManager();
 
             ThreadPoolExecutor executor = new ThreadPoolExecutor(
                     10,
@@ -57,9 +62,13 @@ public class DartGame_Server extends Application {
                 try {
                     Socket s = ss.accept();
                     System.out.println("+ New Client connected: " + s);
-
-                    executor.execute(() -> handleClient(s));
-
+                    
+                    Client c = new Client(s);
+                    clientManager.add(c);
+                    System.out.println("Count of client online: " + clientManager.getSize());
+                    
+//                    executor.execute(() -> handleClient(s));
+                    executor.execute(c);
                 } catch (Exception ex) {
                     System.out.println("ERROR: " + ex);
                     isShutDown = true;
@@ -67,7 +76,7 @@ public class DartGame_Server extends Application {
             }
 
             System.out.println("Shutting down executor...");
-            executor.shutdownNow();
+//            executor.shutdownNow();
             ss.close();
 
         } catch (Exception ex) {
@@ -75,25 +84,25 @@ public class DartGame_Server extends Application {
         }
     }
 
-    private static void handleClient(Socket s) {
-        try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-            PrintWriter out = new PrintWriter(s.getOutputStream()); // auto flush
-            Scanner sc = new Scanner(System.in);
-        ) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                System.out.println("Client " + s.getInetAddress() + ": " + line);
+    // private static void handleClient(Socket s) {
+    //     try (
+    //         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+    //         PrintWriter out = new PrintWriter(s.getOutputStream()); // auto flush
+    //         Scanner sc = new Scanner(System.in);
+    //     ) {
+    //         String line;
+    //         while ((line = in.readLine()) != null) {
+    //             System.out.println("Client " + s.getInetAddress() + ": " + line);
 
-                // Gửi phản hồi về client
-                String message = sc.nextLine();
-                out.println("Server: " + message);
-                out.flush();
-            }
-        } catch (Exception e) {
-            System.out.println("Client disconnected: " + s);
-        }
-    }
+    //             // Gửi phản hồi về client
+    //             String message = sc.nextLine();
+    //             out.println("Server: " + message);
+    //             out.flush();
+    //         }
+    //     } catch (Exception e) {
+    //         System.out.println("Client disconnected: " + s);
+    //     }
+    // }
 
     public static void main(String[] args) {
         launch(args);
