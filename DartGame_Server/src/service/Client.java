@@ -7,6 +7,7 @@ package service;
 import controller.UserController;
 import static dartgame_server.DartGame_Server.clientManager;
 import static dartgame_server.DartGame_Server.isShutDown;
+import static dartgame_server.DartGame_Server.roomManager;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,8 +21,11 @@ public class Client implements Runnable{
     Socket s;
     DataInputStream dis;
     DataOutputStream dos;
-
+    
+    // Mỗi luồng là 1 Client => Mỗi luồng sẽ lưu các thông tin sau:
+    Room joinedRoom; 
     String loginUser;
+    Client cCompetitor;
     
     public Client(Socket s) throws IOException {
         this.s = s;
@@ -56,11 +60,21 @@ public class Client implements Runnable{
 //                    case "GET_INFO_USER":
 //                        onReceiveGetInfoUser(received);
 //                        break;
+                    case "INVITE_TO_PLAY":
+                        onReceiveInviteToPlay(received);
+                        break;
+                    case "ACCEPT_PLAY":
+                        onReceiveAcceptPlay(received);
+                        break;
+                    case "NOT_ACCEPT_PLAY":
+                        onReceiveNotAcceptPlay(received);
+                        break;
                     case "LOGOUT":
                         onReceiveLogout();
                         break;  
                     case "EXIT":
                         running = false;
+                        break;
                 }
 
             } catch (IOException ex) {
@@ -117,7 +131,6 @@ public class Client implements Runnable{
         sendData("LOGIN" + ";" + result);
         onReceiveGetListOnline();
     }
-    
     private void onReceiveRegister(String received) {
         // get email / password from data
         String[] splitted = received.split(";");
@@ -143,12 +156,101 @@ public class Client implements Runnable{
         String msg = "GET_LIST_ONLINE" + ";" + result;
         clientManager.broadcast(msg);
     }
+    private void onReceiveInviteToPlay(String received){
+        // Check Status trước đã
+        System.out.println("==================================");
+        System.out.println("Client Invited String: " + received);
 
+        String[] splitted = received.split(";");
+        String hostname = splitted[1];
+        String invitedname = splitted[2]; // Check tk dc moi
+        
+        String status = "";
+        Client c = clientManager.find(invitedname);
+        System.out.println("------Client Invited: " + c.getLoginUser());
+        if (c == null) {
+            status = "OFFLINE";
+        } else {
+            if (c.getJoinedRoom() == null) {
+                status = "ONLINE";
 
+                joinedRoom = roomManager.createRoom();
+                System.out.println("------Create new Room: " + joinedRoom.getId());
 
-
-    // Get set
+                joinedRoom.addClient(this);
+                cCompetitor = clientManager.find(invitedname);
+                
+                // Send Invitation to Invited Ussr:
+                String msg = "INVITE_TO_PLAY;" + "success;" + hostname + ";" + invitedname + ";" + joinedRoom.getId();
+                System.out.println("------Message invite: " + msg);
+                clientManager.sendToAClient(invitedname, msg);
+            } else {
+                status = "INGAME";
+            }
+        }
+        System.out.println("==================================");
+    }
+    private void onReceiveCheckStatusUser(String received) {
+        String[] splitted = received.split(";");
+        String username = splitted[1];
+        
+        String status = "";
+        Client c = clientManager.find(username);
+        if (c == null) {
+            status = "OFFLINE";
+        } else {
+            if (c.getJoinedRoom() == null) {
+                status = "ONLINE";
+            } else {
+                status = "INGAME";
+            }
+        }
+        // send result
+        sendData("CHECK_STATUS_USER" + ";" + username + ";" + status);
+    }
+    private void onReceiveAcceptPlay(String received) {
+        String[] splitted = received.split(";");
+        String userHost = splitted[1];
+        String userInvited = splitted[2];
+        String roomId = splitted[3];
+        
+        Room room = roomManager.find(roomId);
+        joinedRoom = room;
+        joinedRoom.addClient(this);
+        
+        cCompetitor = clientManager.find(userHost);
+        
+        // send result
+        String msg = "ACCEPT_PLAY;" + "success;" + userHost + ";" + userInvited + ";" + joinedRoom.getId();
+        clientManager.sendToAClient(userHost, msg);
+    }     
+    private void onReceiveNotAcceptPlay(String received) {
+        String[] splitted = received.split(";");
+        String userHost = splitted[1];
+        String userInvited = splitted[2];
+        String roomId = splitted[3];
+         
+        // Xóa thông tin room khỏi client
+        clientManager.find(userHost).setJoinedRoom(null);
+        clientManager.find(userInvited).setJoinedRoom(null);
+        
+        // Xóa room: 
+        Room room = roomManager.find(roomId);
+        roomManager.remove(room);
+        
+        // send res: 
+        String msg = "NOT_ACCEPT_PLAY;" + "success;" + userHost + ";" + userInvited + ";" + room.getId();
+        clientManager.sendToAClient(userHost, msg);
+    } 
+    
+    // GET
+    public Room getJoinedRoom(){ // TAm thoi de day da
+        return null;
+    }
     public String getLoginUser() {
         return loginUser;
+    }
+    public void setJoinedRoom(Room joinedRoom){ // TAm thoi de day da
+        this.joinedRoom = joinedRoom;
     }
 }

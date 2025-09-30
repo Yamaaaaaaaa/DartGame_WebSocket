@@ -3,14 +3,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
 package btl_ltm_n3;
+import controllers.ChooseOpponentController;
 import controllers.SocketHandler;
 import java.io.IOException;
+import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import models.User;
 /**
  *
  * @author kaita
@@ -28,6 +31,12 @@ public class Main extends Application {
     private static Stage primaryStage;
     public static SocketHandler socketHandler;
     private static Scene scene;
+    
+    
+    public static ArrayList<User> listOnlineUser = new ArrayList<>();
+    
+      // 🔹 Lưu controller instance
+    public static ChooseOpponentController chooseOpponentController;
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
@@ -42,23 +51,20 @@ public class Main extends Application {
         socketHandler.connect("localhost", 99); // Tạm thời gọi ở đây, nao có thể làm 1 cái UI để điển Host - Port
     }
     
-    public static void setRoot(String fxml) {
-        Platform.runLater(() -> { // đảm bảo chạy trên JavaFX Application Thread
-            try {
-                scene.setRoot(loadFXML(fxml));
-            } catch (IOException e) {
-                System.out.println("Không tìm thấy file FXML: " + fxml);
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private static Parent loadFXML(String fxml) throws IOException {
-        // file fxml nằm trong /views/
-        FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/views/" + fxml + ".fxml"));
-        return fxmlLoader.load();
-    }
  
+      // 🔹 Load scene và lưu controller nếu cần
+    public static void setRoot(String fxml) throws IOException {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/" + fxml + ".fxml"));
+        Parent root = loader.load();
+
+        // Lưu controller nếu là chooseOpponent
+        if (fxml.equals("chooseOpponent")) {
+            chooseOpponentController = loader.getController();
+        }
+
+        scene.setRoot(root);
+    }
+    
     public static void main(String[] args) {
         // TODO code application logic here
          launch(args);

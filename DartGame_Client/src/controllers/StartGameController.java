@@ -1,6 +1,7 @@
 package controllers;
 
 import btl_ltm_n3.Main;
+import static btl_ltm_n3.Main.socketHandler;
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -569,8 +570,9 @@ public class StartGameController implements Initializable {
         scoreboardPane.getChildren().addAll(headerName, header1, header2, header3, headerScore);
         
         // Player rows
-        Text player1Name = new Text(padding + 30, padding + 40, "Player1");
-        Text computerName = new Text(padding + 30, padding + 70, "Computer");
+        Text player1Name = new Text(padding + 30, padding + 40, socketHandler.loginUser);
+        Text computerName = new Text(padding + 30, padding + 70, socketHandler.competitor);
+        
         player1Name.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         computerName.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         scoreboardPane.getChildren().addAll(player1Name, computerName);

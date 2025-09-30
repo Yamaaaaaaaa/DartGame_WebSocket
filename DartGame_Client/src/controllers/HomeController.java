@@ -13,7 +13,7 @@ public class HomeController {
     }
     public void handleStartGame() {
         try {
-            Main.setRoot("startgame");
+            Main.setRoot("choosemode");
         } catch (Exception e) {
             e.printStackTrace();
         }

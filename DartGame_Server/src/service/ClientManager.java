@@ -57,7 +57,7 @@ public class ClientManager {
             }
         });
     }
-     public String getListUseOnline () {
+    public String getListUseOnline () {
         String result = "success;" + String.valueOf(clients.size()) + ";";
         for(int i = 0; i < clients.size(); i++) {
             result += clients.get(i).getLoginUser() + ";";

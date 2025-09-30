@@ -16,12 +16,14 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import service.Client;
 import service.ClientManager;
+import service.RoomManager;
 
 // DART - SERVER
 public class DartGame_Server extends Application {
     public static boolean isShutDown = false;
     public static ServerSocket ss;
     public static ClientManager clientManager;
+    public static RoomManager roomManager;
 
     @Override
     public void start(Stage primaryStage) {
@@ -49,7 +51,8 @@ public class DartGame_Server extends Application {
             System.out.println("Created Server at port " + port + ".");
             
             clientManager = new ClientManager();
-
+            roomManager = new RoomManager();
+            
             ThreadPoolExecutor executor = new ThreadPoolExecutor(
                     10,
                     100,

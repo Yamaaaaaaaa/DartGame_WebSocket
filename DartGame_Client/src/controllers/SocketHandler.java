@@ -5,6 +5,7 @@
 package controllers;
 
 import btl_ltm_n3.Main;
+import java.awt.geom.Rectangle2D;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +13,14 @@ import java.net.Socket;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import models.User;
 
 /**
  *
@@ -22,9 +31,11 @@ public class SocketHandler {
     DataInputStream dis;
     DataOutputStream dos;
 
-    String loginUser = null; // lưu tài khoản đăng nhập hiện tại
+    public String loginUser = null; // lưu tài khoản đăng nhập hiện tại
     Thread listener = null;
-    
+    public String competitor = "";
+    String roomIdPresent = null; // lưu room hiện tại mà người chơi đang ở 
+
     public String connect(String addr, int port){
         try {
             s = new Socket(addr, port);
@@ -71,8 +82,18 @@ public class SocketHandler {
                     case "GET_LIST_ONLINE":
                         onReceiveGetListOnline(received);
                         break;
+                    case "INVITE_TO_PLAY":
+                        onReceiveInviteToPlay(received);
+                        break;
+                    case "ACCEPT_PLAY":
+                        onReceiveAcceptPlay(received);
+                        break;
+                    case " NOT_ACCEPT_PLAY":
+                        onReceiveNotAcceptPlay(received);
+                        break;
                     case "EXIT":
                         running = false;
+                        break;
                 }
             } catch (IOException ex) {
                 Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,7 +105,7 @@ public class SocketHandler {
     
     // ------------------------------------------------------------------------
     // RECEIVE: 
-     private void onReceiveLogin(String received) {
+    private void onReceiveLogin(String received) {
         // get status from data
         String[] splitted = received.split(";");
         String status = splitted[1];
@@ -144,28 +165,127 @@ public class SocketHandler {
         if (status.equals("success")) {
             int userCount = Integer.parseInt(splitted[2]);
 
-            Vector vheader = new Vector();
-            vheader.add("User");
+            // Reset lại list
+            Main.listOnlineUser.clear();
 
-            Vector vdata = new Vector();
-            if (userCount > 1) {
+            if (userCount > 0) {
                 for (int i = 3; i < userCount + 3; i++) {
-                    String user = splitted[i];
-                    if (!user.equals(loginUser) && !user.equals("null")) {
-                        Vector vrow = new Vector();
-                        vrow.add(user);
-                        vdata.add(vrow);
+                    String username = splitted[i];
+                    if (!username.equals(loginUser) && !username.equals("null")) { // Ko tính người dùng đang online
+                        // chỉ lưu username, id và status tạm thời để mặc định
+                        User u = new User(i - 2, username, "online");
+                        Main.listOnlineUser.add(u);
                     }
                 }
-                
-                System.out.println("LIST USER: vdata: " + vdata + " vheader: " + vheader);
-            } else {
             }
+
+            // debug
+            System.out.print("LIST USER ONLINE: ");
+            for (User u : Main.listOnlineUser) {
+                System.out.print(u.getUsername() + " ");
+            }
+            System.out.println();
             
+            // Cập nhật bảng nếu controller đã load
+            if (Main.chooseOpponentController != null) {
+                Main.chooseOpponentController.updateUserTable(Main.listOnlineUser);
+            }
+
         } else {
             System.out.println("Have some error!");
         }
     }
+        
+        //-- Invite Room + Accept + Reject
+    private void onReceiveInviteToPlay(String received) {
+        System.out.println("==================================");
+        System.out.println("------INVITATION: " + received);
+
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if(status.equals("success")){
+            String userHost = splitted[2];
+            String userInvited = splitted[3];
+            String roomId = splitted[4];
+            System.out.println("Nhận được lời mời: "+ received);
+            
+            // Tạo Dialog mời người chơi vào trận (chắc để 1 cái log ở góc dưới thôi)
+            Platform.runLater(() -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/NotificationDialog.fxml"));
+                    Parent root = loader.load();
+
+                    NotificationController controller = loader.getController();
+                    controller.setMessage("Người chơi " + userHost + " mời bạn vào phòng " + roomId);
+                    controller.setOnAccept(() -> {
+                        System.out.println("Đồng ý tham gia phòng " + roomId);
+                        try {
+                            // TODO: gửi gói tin Accept lên server + Lưu Host + Invited User + Room ID vào
+                            roomIdPresent = roomId;
+                            
+                            sendData("ACCEPT_PLAY;" + userHost + ";" + userInvited + ";" + roomId);
+                            Main.setRoot("startgame");
+                        } catch (IOException ex) {
+                            sendData("NOT_ACCEPT_PLAY;" + userHost + ";" + userInvited + ";" + roomId);
+                            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                    controller.setOnDecline(() -> {
+                        System.out.println("Từ chối tham gia phòng " + roomId);
+                        // TODO: gửi gói tin Decline lên server
+                    });
+
+                    Stage dialogStage = new Stage();
+                    dialogStage.initStyle(StageStyle.UNDECORATED);
+                    dialogStage.setAlwaysOnTop(true);
+
+                    Scene scene = new Scene(root);
+                    dialogStage.setScene(scene);
+
+                    // hiển thị ở góc dưới phải màn hình
+                    Screen screen = Screen.getPrimary();
+                    javafx.geometry.Rectangle2D bounds = screen.getVisualBounds();
+                    dialogStage.setX(bounds.getMaxX() - 320); // 300 width + margin
+                    dialogStage.setY(bounds.getMaxY() - 160); // 120 height + margin
+
+                    dialogStage.show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        System.out.println("==================================");
+    }
+    private void onReceiveAcceptPlay(String received){
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if(status.equals("success")){
+            String userHost = splitted[2];
+            String userInvited = splitted[3];
+            roomIdPresent = splitted[4];
+            // Nhớ lưu dữ liệu của User Invited
+            try {
+                this.competitor = userInvited;
+                System.out.println("Người chơi: " + userInvited + " đồng ý lời mời của bạn!");
+                Main.setRoot("startgame");
+            } catch (IOException ex) {
+                Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    private void onReceiveNotAcceptPlay(String received){
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if(status.equals("success")){
+            String userHost = splitted[2];
+            String userInvited = splitted[3];
+            System.out.println("Người chơi: " + userInvited + " từ chối lời mời của bạn!");
+        }
+    }
+    
     
     
     // ------------------------------------------------------------------------
@@ -197,5 +317,14 @@ public class SocketHandler {
         // prepare data
         this.loginUser = null;
         sendData("LOGOUT");
+    }
+    public void getListOnline() {
+        sendData("GET_LIST_ONLINE");
+    }
+    public void checkStatusUser(String username){
+        sendData("CHECK_sTATUS_USER;" + username);
+    }
+    public void inviteToPlay(String opponentName){
+        sendData("INVITE_TO_PLAY;" + loginUser + ";" + opponentName);
     }
 }
