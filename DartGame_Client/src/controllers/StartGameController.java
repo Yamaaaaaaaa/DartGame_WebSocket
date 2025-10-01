@@ -30,7 +30,8 @@ import java.util.ResourceBundle;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-
+import javafx.scene.Group;
+import javafx.scene.layout.VBox;
 public class StartGameController implements Initializable {
 
     @FXML
@@ -51,6 +52,16 @@ public class StartGameController implements Initializable {
     @FXML
     private Label instructionLabel;
     
+    @FXML
+    private TextField angleInput;
+
+    @FXML
+    private VBox botTurnOverlay;
+
+    private double boardRotation = 0; // Góc xoay hiện tại
+
+    private Group dartboardGroup = new Group(); // <--- thêm group riêng cho dartboard
+
     // Game variables
     private static final double BOARD_SIZE = 400;
     private static final double CENTER_X = 225; // Center of 450px width
@@ -77,7 +88,7 @@ public class StartGameController implements Initializable {
     private Text playerScoreText, computerScoreText;
     private Text[] playerTurnTexts = new Text[3];
     private Text[] computerTurnTexts = new Text[3];
-    private Text winnerText;
+//    private Text winnerText;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -120,71 +131,70 @@ public class StartGameController implements Initializable {
 
     private void setupGame() {
         gamePane.setPrefSize(450, 400);
-        
-        // Draw dartboard
+
+        // Vẽ dartboard vào group
         drawDartboard();
-        
+        gamePane.getChildren().add(dartboardGroup);
+
         createScoreboard();
-        
+
         // Create moving lines
         lineX = new Line(0, 0, 0, BOARD_SIZE);
         lineX.setStroke(Color.ORANGE);
         lineX.setStrokeWidth(3);
         lineX.setVisible(false);
         gamePane.getChildren().add(lineX);
-        
+
         lineY = new Line(0, 0, 450, 0); // Updated to match pane width
         lineY.setStroke(Color.ORANGE);
         lineY.setStrokeWidth(3);
         lineY.setVisible(false);
         gamePane.getChildren().add(lineY);
-        
     }
+
 
     private void drawDartboard() {
         double angleStep = Math.PI * 2 / POINTS.length;
-        
-        // Draw main dartboard sections
+
+        // Clear group trước khi vẽ
+        dartboardGroup.getChildren().clear();
+
         for (int i = 0; i < POINTS.length; i++) {
             Color singleColor = (i % 2 == 0) ? Color.BLACK : Color.WHITE;
             Color otherColor = (i % 2 == 0) ? Color.RED : Color.GREEN;
-            
-            // Single area (main area)
+
             Polygon single = createDartSection(i, angleStep, 0, RADIUS, singleColor);
             single.setUserData(POINTS[i]);
-            gamePane.getChildren().add(single);
-            
-            // Double area (outer ring)
+            dartboardGroup.getChildren().add(single);
+
             Polygon doubleArea = createDartSection(i, angleStep, RADIUS - 20, RADIUS, otherColor);
             doubleArea.setUserData(POINTS[i] * 2);
-            gamePane.getChildren().add(doubleArea);
-            
-            // Triple area (inner ring)
+            dartboardGroup.getChildren().add(doubleArea);
+
             Polygon tripleArea = createDartSection(i, angleStep, RADIUS/2, RADIUS/2 + 20, otherColor);
             tripleArea.setUserData(POINTS[i] * 3);
-            gamePane.getChildren().add(tripleArea);
-            
+            dartboardGroup.getChildren().add(tripleArea);
+
             // Add numbers
             double angle = angleStep * i - Math.PI / 2;
             double numberX = CENTER_X + (RADIUS + 30) * Math.cos(angle);
             double numberY = CENTER_Y + (RADIUS + 30) * Math.sin(angle);
-            
+
             Text number = new Text(numberX - 10, numberY + 5, String.valueOf(POINTS[i]));
             number.setFont(Font.font("Arial", FontWeight.BOLD, 14));
             number.setFill(Color.BLACK);
-            gamePane.getChildren().add(number);
+            dartboardGroup.getChildren().add(number);
         }
-        
-        // Outer bull (25 points)
+
         Circle outerBull = new Circle(CENTER_X, CENTER_Y, 25, Color.GREEN);
         outerBull.setUserData(25);
-        gamePane.getChildren().add(outerBull);
-        
-        // Bull's eye (50 points)
+        dartboardGroup.getChildren().add(outerBull);
+
         Circle bullsEye = new Circle(CENTER_X, CENTER_Y, 12, Color.RED);
         bullsEye.setUserData(50);
-        gamePane.getChildren().add(bullsEye);
+        dartboardGroup.getChildren().add(bullsEye);
     }
+
     
     private Polygon createDartSection(int section, double angleStep, double innerRadius, double outerRadius, Color color) {
         Polygon polygon = new Polygon();
@@ -252,15 +262,16 @@ public class StartGameController implements Initializable {
     
     private void nextTurn() {
         currentDart++;
-        
+
         if (currentDart >= 3) {
             // End of turn, switch players
             currentDart = 0;
-            
+
             if (isPlayerTurn) {
-                // Computer's turn - simulate computer play
-                isPlayerTurn = false;
-                simulateComputerTurn();
+                // Dừng lại, yêu cầu nhập góc xoay trước khi cho máy chơi
+                instructionLabel.setText("Nhập góc xoay bàn rồi ấn Enter để tiếp tục lượt máy!");
+                angleInput.setDisable(false); // cho nhập
+                startButton.setDisable(true); // tạm khóa nút ném
             } else {
                 // Back to player's turn
                 isPlayerTurn = true;
@@ -278,11 +289,26 @@ public class StartGameController implements Initializable {
             }
         }
     }
+
     
     private void simulateComputerTurn() {
         instructionLabel.setText("Computer's turn...");
         
-        Timeline computerDelay = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+        // Hiện overlay
+        botTurnOverlay.setVisible(true);
+
+        Timeline computerDelay = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+            // Sau 3s ẩn overlay rồi ném
+            botTurnOverlay.setVisible(false);
+            
+            // Xoay ngẫu nhiên cho máy
+            double randomAngle = (Math.random() * 60) - 30; // -30 đến +30 độ
+            boardRotation += randomAngle;
+            dartboardGroup.setRotate(boardRotation); // xoay group dartboard, ko xoay cả gamePane
+
+            instructionLabel.setText("Computer xoay bàn " + String.format("%.1f", randomAngle) + "° và ném...");
+
+                
             for (int i = 0; i < 3; i++) {
                 int computerDartScore = (int)(Math.random() * 60) + 1; // Random score 1-60
                 currentTurnScores[i] = computerDartScore;
@@ -438,43 +464,43 @@ public class StartGameController implements Initializable {
     }
     
     private int calculateScore(double x, double y) {
-        double distance = Math.sqrt(Math.pow(x - CENTER_X, 2) + Math.pow(y - CENTER_Y, 2));
-        
-        // Bull's eye (center red circle)
+        double dx = x - CENTER_X;
+        double dy = y - CENTER_Y;
+
+        // --- NGƯỢC XOAY --- //
+        double theta = Math.toRadians(-boardRotation); // ngược lại
+        double rotatedX = dx * Math.cos(theta) - dy * Math.sin(theta);
+        double rotatedY = dx * Math.sin(theta) + dy * Math.cos(theta);
+
+        // Dùng rotatedX, rotatedY để tính khoảng cách và góc
+        double distance = Math.sqrt(rotatedX*rotatedX + rotatedY*rotatedY);
+
         if (distance <= 12) return 50;
-        
-        // Outer bull (green ring around center)
         if (distance <= 25) return 25;
-        
-        // Outside dartboard
         if (distance > RADIUS) return 0;
-        
-        // Calculate angle from center, starting from top (12 o'clock position)
-        double angle = Math.atan2(y - CENTER_Y, x - CENTER_X);
-        // Convert to 0-2π range and adjust so 20 is at top
+
+        double angle = Math.atan2(rotatedY, rotatedX);
         angle = angle + Math.PI/2;
-        if (angle < 0) angle += 2 * Math.PI;
-        if (angle >= 2 * Math.PI) angle -= 2 * Math.PI;
-        
-        // Each section is 18 degrees (π/10 radians)
-        double sectionAngle = (2 * Math.PI) / POINTS.length;
-        int section = (int) Math.round(angle / sectionAngle) % POINTS.length;
-        
+        angle = (angle + 2 * Math.PI) % (2 * Math.PI);
+
+        double sectionAngle = 2 * Math.PI / POINTS.length;
+        int section = (int)(angle / sectionAngle);
         int baseScore = POINTS[section];
-        
-        // Double ring (outer ring) - between radius-30 and radius-10
-        if (distance >= RADIUS - 30 && distance <= RADIUS - 10) {
+
+        // Double ring: [RADIUS - 20, RADIUS]
+        if (distance >= RADIUS - 20 && distance <= RADIUS) {
             return baseScore * 2;
         }
-        // Triple ring (middle ring) - between radius/2-10 and radius/2+10  
-        else if (distance >= RADIUS/2 - 10 && distance <= RADIUS/2 + 10) {
+        // Triple ring: [RADIUS/2, RADIUS/2 + 20]
+        else if (distance >= RADIUS/2 && distance <= RADIUS/2 + 20) {
             return baseScore * 3;
         }
-        // Single area (everything else in the dartboard)
         else {
             return baseScore;
         }
     }
+
+
     
     private void showScorePopup(double x, double y, int score, String message) {
         Text popup = new Text(x, y - 20, message);
@@ -507,7 +533,7 @@ public class StartGameController implements Initializable {
         String winner = playerWon ? "Player là người chiến thắng !!!" : "Computer là người chiến thắng !!!";
         instructionLabel.setText(winner + " - Click START GAME to play again");
         
-        winnerText.setText(playerWon ? "Player là người chiến thắng !!!" : "Computer là người chiến thắng !!!");
+//        winnerText.setText(playerWon ? "Player là người chiến thắng !!!" : "Computer là người chiến thắng !!!");
         
         // Clear darts
         for (Circle dart : darts) {
@@ -655,5 +681,32 @@ public class StartGameController implements Initializable {
                 }
             }
         });
+    }
+
+    public void handleRotateBoard() {
+        if (gameOver) return;
+
+        try {
+            double angle = Double.parseDouble(angleInput.getText().trim());
+            boardRotation += angle;
+            dartboardGroup.setRotate(boardRotation); // xoay group dartboard
+            instructionLabel.setText("Bàn đã xoay " + angle + "°");
+            angleInput.clear();
+
+            angleInput.setDisable(true);   // khóa lại
+            startButton.setDisable(false); // mở lại nút ném
+
+            // 👉 Sau khi xoay xong thì cho máy chơi
+            if (!isPlayerTurn) {
+                simulateComputerTurn();
+            } else {
+                // tức là player vừa xoay xong trước khi nhường lượt cho máy
+                isPlayerTurn = false;
+                simulateComputerTurn();
+            }
+
+        } catch (NumberFormatException e) {
+            instructionLabel.setText("⚠ Nhập số hợp lệ!");
+        }
     }
 }
