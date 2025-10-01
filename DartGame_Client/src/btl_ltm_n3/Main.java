@@ -5,6 +5,8 @@
 package btl_ltm_n3;
 import controllers.ChooseOpponentController;
 import controllers.SocketHandler;
+import controllers.StartGameController;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import javafx.application.Application;
@@ -35,8 +37,13 @@ public class Main extends Application {
     
     public static ArrayList<User> listOnlineUser = new ArrayList<>();
     
-      // 🔹 Lưu controller instance
+    // Lưu controller instance
     public static ChooseOpponentController chooseOpponentController;
+
+    // Lưu instance controller
+    public static StartGameController startGameController; 
+
+    
     @Override
     public void start(Stage stage) throws Exception {
         primaryStage = stage;
@@ -62,6 +69,10 @@ public class Main extends Application {
             chooseOpponentController = loader.getController();
         }
 
+        // Nếu load StartGame thì lấy controller
+        if (fxml.equals("startgame")) {
+            startGameController = loader.getController();
+        }
         scene.setRoot(root);
     }
     

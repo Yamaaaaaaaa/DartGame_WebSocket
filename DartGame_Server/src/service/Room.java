@@ -69,12 +69,12 @@ public class Room {
         
     }
     
-    public void userLeaveGame (String username) throws SQLException {
-        if (client1.getLoginUser().equals(username)) {
-            client2Win(0);
-        } else if (client2.getLoginUser().equals(username)) {
-            client1Win(0);
-        }
+    public void userLeaveGame (String username) {
+//        if (client1.getLoginUser().equals(username)) {
+            System.out.println("Client :" + username + "leaved game");
+//        } else if (client2.getLoginUser().equals(username)) {
+//           System.out.println("Client :" + username + "leaved game");
+//        }
     }
     
     public String handlePlayAgain () {

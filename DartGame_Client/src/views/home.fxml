@@ -17,6 +17,7 @@
         <Label text="Chào mừng bạn đã đăng nhập!" style="-fx-font-size: 18px;"/>
 
         <Button text="Bắt đầu game" onAction="#handleStartGame" maxWidth="200"/>
+        <Button text="Test giao diện game" onAction="#handleClickStartGame" maxWidth="200"/>
         <Button text="Bảng xếp hạng" onAction="#handleRanking" maxWidth="200"/>
         <Button text="Đăng xuất" onAction="#handleLogout" maxWidth="200"/>
     </VBox>

@@ -18,7 +18,13 @@ public class HomeController {
             e.printStackTrace();
         }
     }
-
+    public void handleClickStartGame() {
+        try {
+            Main.setRoot("startgame");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public void handleRanking() {
         try {
             Main.setRoot("ranking");

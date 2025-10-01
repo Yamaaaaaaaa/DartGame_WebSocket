@@ -27,6 +27,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 
 public class StartGameController implements Initializable {
 
@@ -599,14 +602,31 @@ public class StartGameController implements Initializable {
             scoreboardPane.getChildren().add(computerTurnTexts[i]);
         }
     }
-
     public void handleBack() {
-        try {
-            Main.setRoot("home");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Xác nhận thoát game");
+        alert.setHeaderText("Bạn có chắc chắn muốn thoát game không?");
+        alert.setContentText("Hãy chọn hành động của bạn.");
+
+        ButtonType buttonXacNhan = new ButtonType("Xác nhận");
+        ButtonType buttonHuy = new ButtonType("Hủy", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(buttonXacNhan, buttonHuy);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == buttonXacNhan) {
+                try {
+                    Main.setRoot("home"); // Quay lại màn hình home
+                    socketHandler.leaveGame();
+                    socketHandler.setRoomIdPresent(null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } 
+            // Nếu bấm Hủy thì không làm gì
+        });
     }
+
 
     public void handleSend() {
         String msg = chatInput.getText().trim();
@@ -614,5 +634,26 @@ public class StartGameController implements Initializable {
             chatList.getItems().add("Bạn: " + msg);
             chatInput.clear();
         }
+    }
+
+    public void showWinnerDialog(String leaver) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Kết thúc trận đấu");
+        alert.setHeaderText(null);
+        alert.setContentText("Người chơi " + leaver + " đã rời khỏi phòng.\nBạn là người chiến thắng!");
+
+        ButtonType leaveBtn = new ButtonType("Rời khỏi phòng", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(leaveBtn);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == leaveBtn) {
+                try {
+                    // Quay về màn home
+                    Main.setRoot("home");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

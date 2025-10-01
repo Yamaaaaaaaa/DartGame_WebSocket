@@ -69,6 +69,9 @@ public class Client implements Runnable{
                     case "NOT_ACCEPT_PLAY":
                         onReceiveNotAcceptPlay(received);
                         break;
+                    case "LEAVE_TO_GAME":
+                        onReceiveLeaveToGame(received);
+                        break; 
                     case "LOGOUT":
                         onReceiveLogout();
                         break;  
@@ -242,6 +245,32 @@ public class Client implements Runnable{
         String msg = "NOT_ACCEPT_PLAY;" + "success;" + userHost + ";" + userInvited + ";" + room.getId();
         clientManager.sendToAClient(userHost, msg);
     } 
+     private void onReceiveLeaveToGame(String received) {
+        // get email / password from data
+        String[] splitted = received.split(";");
+        String host = splitted[1];
+        String invited = splitted[2];
+        String roomId = splitted[3];
+
+        joinedRoom.userLeaveGame(host);
+        
+        this.cCompetitor = null;
+        this.joinedRoom = null;
+        Room room = roomManager.find(roomId);
+        roomManager.remove(room);
+        
+        // Sau khi xóa thông tin của người rời, xóa nốt room, competitor của ng còn lại đi
+        Client c = clientManager.find(invited); 
+        c.setJoinedRoom(null);
+        c.setcCompetitor(null);
+        
+        // result: Gửi thông tin ng kia rời phòng cho ng còn lại 
+        String msg = "LEAVE_TO_GAME;" + "success;" + host + ";" + invited;
+        clientManager.sendToAClient(invited, msg);        
+    }
+    
+    
+    
     
     // GET
     public Room getJoinedRoom(){ // TAm thoi de day da
@@ -253,4 +282,13 @@ public class Client implements Runnable{
     public void setJoinedRoom(Room joinedRoom){ // TAm thoi de day da
         this.joinedRoom = joinedRoom;
     }
+
+    public Client getcCompetitor() {
+        return cCompetitor;
+    }
+
+    public void setcCompetitor(Client cCompetitor) {
+        this.cCompetitor = cCompetitor;
+    }
+    
 }

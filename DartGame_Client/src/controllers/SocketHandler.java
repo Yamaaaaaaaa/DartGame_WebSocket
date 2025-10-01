@@ -88,9 +88,12 @@ public class SocketHandler {
                     case "ACCEPT_PLAY":
                         onReceiveAcceptPlay(received);
                         break;
-                    case " NOT_ACCEPT_PLAY":
+                    case "NOT_ACCEPT_PLAY":
                         onReceiveNotAcceptPlay(received);
                         break;
+                    case "LEAVE_TO_GAME":
+                        onReceiveLeaveToGame(received);
+                        break; 
                     case "EXIT":
                         running = false;
                         break;
@@ -117,6 +120,7 @@ public class SocketHandler {
         } else if (status.equals("success")) {
             // lưu user login
             this.loginUser = splitted[2];
+            System.out.println("Đăng nhập thành công");
             try {
                 Main.setRoot("home");
             } catch (Exception ex) {
@@ -223,7 +227,7 @@ public class SocketHandler {
                         try {
                             // TODO: gửi gói tin Accept lên server + Lưu Host + Invited User + Room ID vào
                             roomIdPresent = roomId;
-                            
+                            this.competitor = userHost;
                             sendData("ACCEPT_PLAY;" + userHost + ";" + userInvited + ";" + roomId);
                             Main.setRoot("startgame");
                         } catch (IOException ex) {
@@ -285,6 +289,22 @@ public class SocketHandler {
             System.out.println("Người chơi: " + userInvited + " từ chối lời mời của bạn!");
         }
     }
+    private void onReceiveLeaveToGame(String received) {
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if(status.equals("success")){
+            String userHost = splitted[2];
+            String userInvited = splitted[3];
+            Platform.runLater(() -> {
+                if (Main.startGameController != null) {
+                    Main.startGameController.showWinnerDialog(userHost);
+                }
+            });
+        }
+    }
+
+    
     
     
     
@@ -327,4 +347,19 @@ public class SocketHandler {
     public void inviteToPlay(String opponentName){
         sendData("INVITE_TO_PLAY;" + loginUser + ";" + opponentName);
     }
+    public void leaveGame(){
+        sendData("LEAVE_TO_GAME;" + loginUser + ";" + competitor + ";" + roomIdPresent);
+    }
+    
+    
+    // Getter setter:
+
+    public String getRoomIdPresent() {
+        return roomIdPresent;
+    }
+
+    public void setRoomIdPresent(String roomIdPresent) {
+        this.roomIdPresent = roomIdPresent;
+    }
+    
 }
