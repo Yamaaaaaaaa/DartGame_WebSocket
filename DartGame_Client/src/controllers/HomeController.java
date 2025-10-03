@@ -18,9 +18,9 @@ public class HomeController {
             e.printStackTrace();
         }
     }
-    public void handleClickStartGame() {
+    public void handleClickStartGameWithBot() {
         try {
-            Main.setRoot("startgame");
+            Main.setRoot("startgamewithbot");
         } catch (Exception e) {
             e.printStackTrace();
         }

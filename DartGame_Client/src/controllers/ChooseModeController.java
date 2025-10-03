@@ -35,7 +35,7 @@ public class ChooseModeController {
 
     private void handlePlayWithAI(ActionEvent event) {
         try {
-            Main.setRoot("startgame");
+            Main.setRoot("startgamewithbot");
         } catch (IOException ex) {
             Logger.getLogger(ChooseModeController.class.getName()).log(Level.SEVERE, null, ex);
         }
