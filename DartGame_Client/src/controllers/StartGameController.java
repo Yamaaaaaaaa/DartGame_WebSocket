@@ -2,10 +2,8 @@ package controllers;
 
 import btl_ltm_n3.Main;
 import static btl_ltm_n3.Main.socketHandler;
-import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -32,6 +30,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.Group;
 import javafx.scene.layout.VBox;
+
 public class StartGameController implements Initializable {
 
     @FXML
@@ -71,24 +70,23 @@ public class StartGameController implements Initializable {
     
     private Line lineX, lineY;
     private Timeline lineXAnimation, lineYAnimation;
-    private boolean started = false;
+    private boolean started = true;
     private boolean inXAxis = false;
     private boolean inYAxis = false;
     
     private int playerScore = 301;
-    private int computerScore = 301;
+    private int opponentScore = 301;
     private int currentDart = 0; // Track current dart in turn (0, 1, 2)
     private int[] currentTurnScores = new int[3]; // Store scores for current turn
-    private boolean isPlayerTurn = true;
+    private boolean isMyTurn = false;
     private boolean gameOver = false;
     
     private List<Circle> darts = new ArrayList<>();
     
     private Rectangle scoreBoard;
-    private Text playerScoreText, computerScoreText;
+    private Text playerScoreText, opponentScoreText;
     private Text[] playerTurnTexts = new Text[3];
-    private Text[] computerTurnTexts = new Text[3];
-//    private Text winnerText;
+    private Text[] opponentTurnTexts = new Text[3];
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -150,8 +148,14 @@ public class StartGameController implements Initializable {
         lineY.setStrokeWidth(3);
         lineY.setVisible(false);
         gamePane.getChildren().add(lineY);
+        
+        instructionLabel.setText("Đang chờ đến lượt của bạn ...");
+        startButton.setDisable(true);
+        
+        if(socketHandler.checkYouAreInvited){
+            startButton.setText("THROW!");
+        }  
     }
-
 
     private void drawDartboard() {
         double angleStep = Math.PI * 2 / POINTS.length;
@@ -195,7 +199,6 @@ public class StartGameController implements Initializable {
         dartboardGroup.getChildren().add(bullsEye);
     }
 
-    
     private Polygon createDartSection(int section, double angleStep, double innerRadius, double outerRadius, Color color) {
         Polygon polygon = new Polygon();
         
@@ -232,131 +235,44 @@ public class StartGameController implements Initializable {
         
         return polygon;
     }
-
-    private void startGame() {
-        started = true;
-        gameOver = false;
-        playerScore = 301;
-        computerScore = 301;
-        currentDart = 0;
-        isPlayerTurn = true;
-        currentTurnScores = new int[3];
-        darts.clear();
-        
-        updateScoreboard();
-        startButton.setText("STOP X");
-        startButton.setStyle(
-            "-fx-background-color: linear-gradient(to bottom, #FF6B6B, #FF5252); " +
-            "-fx-text-fill: white; " +
-            "-fx-font-weight: bold; " +
-            "-fx-font-size: 16px; " +
-            "-fx-border-radius: 8px; " +
-            "-fx-background-radius: 8px; " +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5); " +
-            "-fx-cursor: hand; " +
-            "-fx-opacity: 0.95;"
-        );
-        instructionLabel.setText("Player's turn - Dart 1/3");
-        startXAxis();
-    }
     
     private void nextTurn() {
         currentDart++;
 
-        if (currentDart >= 3) {
-            // End of turn, switch players
-            currentDart = 0;
-
-            if (isPlayerTurn) {
-                // Dừng lại, yêu cầu nhập góc xoay trước khi cho máy chơi
-                instructionLabel.setText("Nhập góc xoay bàn rồi ấn Enter để tiếp tục lượt máy!");
-                angleInput.setDisable(false); // cho nhập
-                startButton.setDisable(true); // tạm khóa nút ném
-            } else {
-                // Back to player's turn
-                isPlayerTurn = true;
-                clearTurnScores();
-                if (!gameOver) {
-                    instructionLabel.setText("Player's turn - Dart 1/3");
-                    startXAxis();
-                }
-            }
+        if (currentDart < 3) {
+            // Vẫn còn phi tiêu → tiếp tục ném
+            instructionLabel.setText("Dart " + (currentDart + 1) + "/3");
+            startXAxis();
         } else {
-            // Continue current player's turn
-            if (isPlayerTurn && !gameOver) {
-                instructionLabel.setText("Player's turn - Dart " + (currentDart + 1) + "/3");
-                startXAxis();
-            }
+            currentDart = 0;
+            // Hết lượt → gửi kết quả cho server
+            String msg = "THROW_RESULT;" + socketHandler.loginUser + ";" + socketHandler.competitor + ";" + socketHandler.roomIdPresent + ";"
+                + currentTurnScores[0] + ";"
+                + currentTurnScores[1] + ";"
+                + currentTurnScores[2] + ";"
+                + playerScore;
+            socketHandler.sendData(msg);
+            // Reset turn
+            isMyTurn = false;
+            startButton.setDisable(true);
+            instructionLabel.setText("Đang chờ máy chủ ...");
         }
     }
 
-    
-    private void simulateComputerTurn() {
-        instructionLabel.setText("Computer's turn...");
-        
-        // Hiện overlay
-        botTurnOverlay.setVisible(true);
-
-        Timeline computerDelay = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
-            // Sau 3s ẩn overlay rồi ném
-            botTurnOverlay.setVisible(false);
-            
-            // Xoay ngẫu nhiên cho máy
-            double randomAngle = (Math.random() * 60) - 30; // -30 đến +30 độ
-            boardRotation += randomAngle;
-            dartboardGroup.setRotate(boardRotation); // xoay group dartboard, ko xoay cả gamePane
-
-            instructionLabel.setText("Computer xoay bàn " + String.format("%.1f", randomAngle) + "° và ném...");
-
-                
-            for (int i = 0; i < 3; i++) {
-                int computerDartScore = (int)(Math.random() * 60) + 1; // Random score 1-60
-                currentTurnScores[i] = computerDartScore;
-                computerTurnTexts[i].setText(String.valueOf(computerDartScore));
-                
-                // Check if computer can finish
-                if (computerScore - computerDartScore == 0) {
-                    computerScore = 0;
-                    computerScoreText.setText("0");
-                    endGame(false); // Computer wins
-                    return;
-                } else if (computerScore - computerDartScore > 0) {
-                    computerScore -= computerDartScore;
-                } else {
-                    // Bust - reset turn scores
-                    currentTurnScores[i] = 0;
-                    computerTurnTexts[i].setText("0");
-                    break;
-                }
-            }
-            
-            computerScoreText.setText(String.valueOf(computerScore));
-            
-            // Back to player
-            isPlayerTurn = true;
-            clearTurnScores();
-            if (!gameOver) {
-                instructionLabel.setText("Player's turn - Dart 1/3");
-                startXAxis();
-            }
-        }));
-        computerDelay.play();
-    }
-    
-    private void clearTurnScores() {
+    public void clearTurnScores() {
         currentTurnScores = new int[3];
         for (int i = 0; i < 3; i++) {
-            if (isPlayerTurn) {
+            if (isMyTurn) {
                 playerTurnTexts[i].setText("0");
             } else {
-                computerTurnTexts[i].setText("0");
+                opponentTurnTexts[i].setText("0");
             }
         }
     }
     
     private void updateScoreboard() {
         playerScoreText.setText(String.valueOf(playerScore));
-        computerScoreText.setText(String.valueOf(computerScore));
+        opponentScoreText.setText(String.valueOf(opponentScore));
     }
 
     private void startXAxis() {
@@ -416,92 +332,98 @@ public class StartGameController implements Initializable {
     private void throwDart() {
         double dartX = lineX.getStartX();
         double dartY = lineY.getStartY();
-        
-        // Create dart visual
+
+        // Vẽ phi tiêu
         Circle dart = new Circle(dartX, dartY, 3, Color.PURPLE);
         gamePane.getChildren().add(dart);
         darts.add(dart);
-        
-        // Hide lines
+
+        // Ẩn line
         lineX.setVisible(false);
         lineY.setVisible(false);
-        
-        // Check hit and calculate score
+
+        // Tính điểm
         int score = calculateScore(dartX, dartY);
         currentTurnScores[currentDart] = score;
-        
-        // Update turn score display
-        if (isPlayerTurn) {
+
+        // Cập nhật UI hiển thị điểm từng lượt
+        if (isMyTurn) {
             playerTurnTexts[currentDart].setText(String.valueOf(score));
         }
-        
-        // Check for win or bust
-        if (isPlayerTurn) {
-            if (playerScore - score == 0) {
-                playerScore = 0;
-                updateScoreboard();
-                endGame(true); // Player wins
-                return;
-            } else if (playerScore - score > 0) {
+
+        // Cập nhật tạm thời điểm (nếu không bust)
+        if (isMyTurn) {
+            if (playerScore - score >= 0) {
                 playerScore -= score;
                 updateScoreboard();
             } else {
-                // Bust - end turn
+                // Bust → lượt này tính 0 điểm
                 showScorePopup(dartX, dartY, 0, "BUST!");
-                currentDart = 2; // Force end of turn
-                Timeline delay = new Timeline(new KeyFrame(Duration.seconds(1), e -> nextTurn()));
-                delay.play();
-                return;
+                // Không trừ điểm, coi như ném hụt
             }
         }
-        
-        // Show score popup
+
+        // Show popup điểm
         showScorePopup(dartX, dartY, score, score > 0 ? score + "!" : "MISS");
-        
-        // Continue to next dart after delay
+
+        // Sau khi xử lý xong 1 phi tiêu → chuyển sang phi tiêu tiếp theo
         Timeline delay = new Timeline(new KeyFrame(Duration.seconds(1), e -> nextTurn()));
         delay.play();
     }
+
     
     private int calculateScore(double x, double y) {
         double dx = x - CENTER_X;
         double dy = y - CENTER_Y;
 
-        // --- NGƯỢC XOAY --- //
-        double theta = Math.toRadians(-boardRotation); // ngược lại
+        // Ngược xoay tọa độ về hệ tọa độ gốc của bàn
+        double theta = Math.toRadians(-boardRotation);
         double rotatedX = dx * Math.cos(theta) - dy * Math.sin(theta);
         double rotatedY = dx * Math.sin(theta) + dy * Math.cos(theta);
 
-        // Dùng rotatedX, rotatedY để tính khoảng cách và góc
+        // Tính khoảng cách từ tâm
         double distance = Math.sqrt(rotatedX*rotatedX + rotatedY*rotatedY);
 
+        // Kiểm tra bullseye và outer bull
         if (distance <= 12) return 50;
         if (distance <= 25) return 25;
         if (distance > RADIUS) return 0;
 
+        // Tính góc (atan2 trả về [-π, π])
         double angle = Math.atan2(rotatedY, rotatedX);
-        angle = angle + Math.PI/2;
-        angle = (angle + 2 * Math.PI) % (2 * Math.PI);
-
+        
+        // Chuyển về [0, 2π] và điều chỉnh để khớp với cách vẽ section
+        // Trong createDartSection, section 0 bắt đầu từ góc -Math.PI/2 (12 giờ)
+        angle = angle + Math.PI/2;  // Xoay để 0° ở vị trí 12 giờ
+        if (angle < 0) angle += 2 * Math.PI;  // Đảm bảo angle >= 0
+        
         double sectionAngle = 2 * Math.PI / POINTS.length;
+        
+        // Điều chỉnh để góc nằm giữa section (vì section được vẽ từ -angleStep/2 đến +angleStep/2)
+        angle = (angle + sectionAngle/2) % (2 * Math.PI);
+        
         int section = (int)(angle / sectionAngle);
+        
+        // Đảm bảo section trong phạm vi hợp lệ
+        if (section < 0) section = 0;
+        if (section >= POINTS.length) section = POINTS.length - 1;
+        
         int baseScore = POINTS[section];
 
-        // Double ring: [RADIUS - 20, RADIUS]
+        // Kiểm tra vùng double (vòng ngoài)
         if (distance >= RADIUS - 20 && distance <= RADIUS) {
             return baseScore * 2;
         }
-        // Triple ring: [RADIUS/2, RADIUS/2 + 20]
+        // Kiểm tra vùng triple (vòng giữa)
         else if (distance >= RADIUS/2 && distance <= RADIUS/2 + 20) {
             return baseScore * 3;
         }
+        // Vùng single
         else {
             return baseScore;
         }
     }
-
-
-    
+   
     private void showScorePopup(double x, double y, int score, String message) {
         Text popup = new Text(x, y - 20, message);
         popup.setFont(Font.font("Arial", FontWeight.BOLD, 20));
@@ -530,7 +452,9 @@ public class StartGameController implements Initializable {
             "-fx-opacity: 0.95;"
         );
         
-        String winner = playerWon ? "Player là người chiến thắng !!!" : "Computer là người chiến thắng !!!";
+        String winner = playerWon ? 
+                (socketHandler.loginUser + " là người chiến thắng !!!")
+                : (socketHandler.competitor + " là người chiến thắng !!!");
         instructionLabel.setText(winner + " - Click START GAME to play again");
         
 //        winnerText.setText(playerWon ? "Player là người chiến thắng !!!" : "Computer là người chiến thắng !!!");
@@ -543,9 +467,7 @@ public class StartGameController implements Initializable {
     }
 
     public void handleGameAction() {
-        if (!started) {
-            startGame();
-        } else if (inXAxis) {
+        if (inXAxis) {
             stopXAxis();
         } else if (inYAxis) {
             stopYAxis();
@@ -600,21 +522,21 @@ public class StartGameController implements Initializable {
         
         // Player rows
         Text player1Name = new Text(padding + 30, padding + 40, socketHandler.loginUser);
-        Text computerName = new Text(padding + 30, padding + 70, socketHandler.competitor);
+        Text competitorName = new Text(padding + 30, padding + 70, socketHandler.competitor);
         
         player1Name.setFont(Font.font("Arial", FontWeight.BOLD, 12));
-        computerName.setFont(Font.font("Arial", FontWeight.BOLD, 12));
-        scoreboardPane.getChildren().addAll(player1Name, computerName);
+        competitorName.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        scoreboardPane.getChildren().addAll(player1Name, competitorName);
         
         playerScoreText = new Text(padding + 410, padding + 40, "301");
         playerScoreText.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         playerScoreText.setFill(Color.BLACK);
         scoreboardPane.getChildren().add(playerScoreText);
         
-        computerScoreText = new Text(padding + 410, padding + 70, "301");
-        computerScoreText.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        computerScoreText.setFill(Color.BLACK);
-        scoreboardPane.getChildren().add(computerScoreText);
+        opponentScoreText = new Text(padding + 410, padding + 70, "301");
+        opponentScoreText.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        opponentScoreText.setFill(Color.BLACK);
+        scoreboardPane.getChildren().add(opponentScoreText);
         
         for (int i = 0; i < 3; i++) {
             playerTurnTexts[i] = new Text(padding + 180 + (i * 60), padding + 40, "0");
@@ -622,10 +544,10 @@ public class StartGameController implements Initializable {
             playerTurnTexts[i].setFill(Color.BLACK);
             scoreboardPane.getChildren().add(playerTurnTexts[i]);
             
-            computerTurnTexts[i] = new Text(padding + 180 + (i * 60), padding + 70, "0");
-            computerTurnTexts[i].setFont(Font.font("Arial", FontWeight.BOLD, 12));
-            computerTurnTexts[i].setFill(Color.BLACK);
-            scoreboardPane.getChildren().add(computerTurnTexts[i]);
+            opponentTurnTexts[i] = new Text(padding + 180 + (i * 60), padding + 70, "0");
+            opponentTurnTexts[i].setFont(Font.font("Arial", FontWeight.BOLD, 12));
+            opponentTurnTexts[i].setFill(Color.BLACK);
+            scoreboardPane.getChildren().add(opponentTurnTexts[i]);
         }
     }
     public void handleBack() {
@@ -643,8 +565,6 @@ public class StartGameController implements Initializable {
             if (response == buttonXacNhan) {
                 try {
                     Main.setRoot("home"); // Quay lại màn hình home
-                    socketHandler.leaveGame();
-                    socketHandler.setRoomIdPresent(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -682,31 +602,89 @@ public class StartGameController implements Initializable {
             }
         });
     }
+    public void showWinnerDialogEndGame(String winner) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Kết thúc trận đấu");
+        alert.setHeaderText(null);
+        if(winner.equals(socketHandler.loginUser)) alert.setContentText("Trận đấu kết thúc, Bạn là người chiến thắng");
+        else alert.setContentText("Trận đấu kết thúc, người chiến thắng là: " + winner);
 
+        ButtonType leaveBtn = new ButtonType("Rời khỏi phòng", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(leaveBtn);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == leaveBtn) {
+                try {
+                    // Quay về màn home
+                    Main.setRoot("home");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
     public void handleRotateBoard() {
         if (gameOver) return;
 
         try {
             double angle = Double.parseDouble(angleInput.getText().trim());
             boardRotation += angle;
-            dartboardGroup.setRotate(boardRotation); // xoay group dartboard
+            dartboardGroup.setRotate(boardRotation); // Xoay dartboard
             instructionLabel.setText("Bàn đã xoay " + angle + "°");
             angleInput.clear();
-
+            
+            String msg = "ROTATE_RESULT;" + socketHandler.loginUser + ";" + socketHandler.competitor +";" +socketHandler.roomIdPresent + ";" + angle;
+            socketHandler.sendData(msg);
+            
             angleInput.setDisable(true);   // khóa lại
-            startButton.setDisable(false); // mở lại nút ném
+            startButton.setDisable(false); // mở lại nút ném nếu là lượt mình
 
-            // 👉 Sau khi xoay xong thì cho máy chơi
-            if (!isPlayerTurn) {
-                simulateComputerTurn();
-            } else {
-                // tức là player vừa xoay xong trước khi nhường lượt cho máy
-                isPlayerTurn = false;
-                simulateComputerTurn();
+            // Với 2 người chơi: chỉ cần check nếu là lượt mình
+            if (!isMyTurn) {
+                instructionLabel.setText("Đang chờ đối thủ xoay bàn và ném...");
+                startButton.setDisable(true); // không cho ném
             }
-
         } catch (NumberFormatException e) {
             instructionLabel.setText("⚠ Nhập số hợp lệ!");
         }
+    }
+    
+    public void setTurn(String nextPlayer){
+        if(nextPlayer.equals(socketHandler.loginUser)){
+            isMyTurn = true;
+            clearTurnScores();
+            instructionLabel.setText("Đến lượt bạn ném");
+            startButton.setDisable(false);
+            angleInput.setDisable(false);
+//            inXAxis = true;
+            startXAxis();
+        } else{
+            isMyTurn = false;
+            instructionLabel.setText("Đang chờ đối thủ");
+            startButton.setDisable(true);
+            angleInput.setDisable(true);
+        }
+    }
+    
+    public void setTurnRotate(String nextPlayer){
+        instructionLabel.setText("Nhập góc xoay bàn rồi ấn Enter để tiếp tục lượt máy!");
+        angleInput.setDisable(false); // cho nhập
+        startButton.setDisable(true); // tạm khóa nút ném
+    }
+    public void updateCompetitorStatus(String competitorName,String roomId,String aigle, String score1,String score2,String score3, String scoreRemaining){
+        currentTurnScores[0] = Integer.parseInt(score1);
+        opponentTurnTexts[0].setText(score1);
+        
+        currentTurnScores[1] = Integer.parseInt(score2);
+        opponentTurnTexts[1].setText(score2);
+        
+        currentTurnScores[2] = Integer.parseInt(score3);
+        opponentTurnTexts[2].setText(score3);
+        
+        opponentScore = Integer.parseInt(scoreRemaining); 
+        opponentScoreText.setText(String.valueOf(opponentScore));
+    
+        boardRotation += Double.parseDouble(aigle);
+        dartboardGroup.setRotate(boardRotation); // xoay group dartboard, ko xoay cả gamePane
     }
 }

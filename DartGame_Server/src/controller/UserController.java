@@ -33,7 +33,7 @@ public class UserController {
         this.con = DBConnection.getInstance().getConnection();
     }
     
-     public String register(String username, String password) {
+    public String register(String username, String password) {
     	//  Check user exit
         try {
             PreparedStatement p = con.prepareStatement(CHECK_USER);
@@ -77,5 +77,74 @@ public class UserController {
             
         }
         return null;
+    }
+    
+    public String updateUser(String username, String newPassword, Integer newScore) {
+        // Chỉ cập nhật các trường được truyền vào (không null)
+        StringBuilder sql = new StringBuilder("UPDATE users SET ");
+        boolean hasSet = false;
+
+        if (newPassword != null) {
+            sql.append("password = ?");
+            hasSet = true;
+        }
+
+        if (newScore != null) {
+            if (hasSet) sql.append(", ");
+            sql.append("score = ?");
+            hasSet = true;
+        }
+
+        // Nếu không có trường nào để update
+        if (!hasSet) {
+            return "failed;No fields to update";
+        }
+
+        sql.append(" WHERE username = ?");
+
+        try {
+            PreparedStatement p = con.prepareStatement(sql.toString());
+            int index = 1;
+
+            if (newPassword != null) {
+                p.setString(index++, newPassword);
+            }
+            if (newScore != null) {
+                p.setInt(index++, newScore);
+            }
+            p.setString(index, username);
+
+            int rows = p.executeUpdate();
+            p.close();
+
+            if (rows > 0) {
+                return "success;User updated successfully";
+            } else {
+                return "failed;User not found";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "failed;Database error: " + e.getMessage();
+        }
+    }
+    
+    public String increaseScore(String username) {
+        String sql = "UPDATE users SET score = score + 1 WHERE username = ?";
+
+        try {
+            PreparedStatement p = con.prepareStatement(sql);
+            p.setString(1, username);
+            int rows = p.executeUpdate();
+            p.close();
+
+            if (rows > 0) {
+                return "success;Score increased by 1";
+            } else {
+                return "failed;User not found";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "failed;Database error: " + e.getMessage();
+        }
     }
 }

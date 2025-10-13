@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/dart_socket_game";
     private static final String USER = "root";   
-    private static final String PASSWORD = "";  
+    private static final String PASSWORD = "12345678";  
 
     private static DBConnection instance;
     private Connection connection;

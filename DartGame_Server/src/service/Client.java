@@ -72,6 +72,12 @@ public class Client implements Runnable{
                     case "LEAVE_TO_GAME":
                         onReceiveLeaveToGame(received);
                         break; 
+                    case "THROW_RESULT":
+                        onReceiveThrowResult(received);
+                        break; 
+                    case "ROTATE_RESULT":
+                        onReceiveRotateResult(received);
+                        break; 
                     case "LOGOUT":
                         onReceiveLogout();
                         break;  
@@ -223,9 +229,12 @@ public class Client implements Runnable{
         
         cCompetitor = clientManager.find(userHost);
         
-        // send result
+        // Gửi kết quả là ng bên kia đồng ý vào cho Host + Gửi mes Turn_Throw cho Host (Mặc định Host đi trước)
         String msg = "ACCEPT_PLAY;" + "success;" + userHost + ";" + userInvited + ";" + joinedRoom.getId();
         clientManager.sendToAClient(userHost, msg);
+        
+        String turnMsg = "TURN_THROW;" + userHost;
+        clientManager.sendToAClient(userHost, turnMsg); // Bắt Host đi trước
     }     
     private void onReceiveNotAcceptPlay(String received) {
         String[] splitted = received.split(";");
@@ -245,7 +254,7 @@ public class Client implements Runnable{
         String msg = "NOT_ACCEPT_PLAY;" + "success;" + userHost + ";" + userInvited + ";" + room.getId();
         clientManager.sendToAClient(userHost, msg);
     } 
-     private void onReceiveLeaveToGame(String received) {
+    private void onReceiveLeaveToGame(String received) {
         // get email / password from data
         String[] splitted = received.split(";");
         String host = splitted[1];
@@ -269,7 +278,63 @@ public class Client implements Runnable{
         clientManager.sendToAClient(invited, msg);        
     }
     
-    
+    private String tmpPoint1, tmpPoint2, tmpPoint3, rmnPoint;
+    private void onReceiveThrowResult(String received){ // THROW_RESULT;kaita123;competitorName;roomId;24;9;0;268
+        String[] splitted = received.split(";");
+        String userName = splitted[1];
+        String competitorName = splitted[2];
+        String roomId = splitted[3];
+        String score1 = splitted[4];
+        String score2 = splitted[5];
+        String score3 = splitted[6];
+        String scoreRemaining = splitted[7];
+        tmpPoint1 = score1;
+        tmpPoint2 = score2;
+        tmpPoint3 = score3;
+        rmnPoint = scoreRemaining;
+        // B1: Check Winner: Nếu win: Gửi "END_GAME;winner" đến ng gửi + Xóa thông tin, Xóa phòng luôn đi
+        if(Integer.parseInt(scoreRemaining) == 0){
+            this.cCompetitor = null;
+            this.joinedRoom = null;
+            Room room = roomManager.find(roomId);
+            roomManager.remove(room);
+
+            // Sau khi xóa thông tin của người rời, xóa nốt room, competitor của ng còn lại đi
+            Client c = clientManager.find(competitorName); 
+            c.setJoinedRoom(null);
+            c.setcCompetitor(null);
+
+            Client c2 = clientManager.find(userName); 
+            c2.setJoinedRoom(null);
+            c2.setcCompetitor(null);
+            
+            String result = new UserController().increaseScore(userName);
+            System.out.println("Result Update Score: "+ result);
+            System.out.println("ALL ROOM: "+ roomManager.rooms);
+            String endMsg = "END_GAME;" + userName + ";" + competitorName + ";" + roomId + ";" + userName;
+            String endMsgCompetitor = "END_GAME;" + competitorName + ";" + userName + ";" + roomId + ";" + userName;
+            clientManager.sendToAClient(userName, endMsg);
+            clientManager.sendToAClient(competitorName, endMsgCompetitor);
+        }
+        // B2: Nếu chưa: Gửi "TURN_ROTATE" để ng kia xoay vòng quay: (Quay xong thì gửi lại server, để gửi hết thông tin cho ng còn lại)
+        else{
+            
+            String turnMsg = "TURN_ROTATE;" + userName + ";" + competitorName + ";" + roomId;
+            clientManager.sendToAClient(userName, turnMsg);
+        }
+    }
+    private void onReceiveRotateResult(String received){ // ROTATE_RESULT;kaita123;competitorName;roomId;angle
+        String[] splitted = received.split(";");
+        String userName = splitted[1];
+        String competitorName = splitted[2];
+        String roomId = splitted[3];
+        String angle = splitted[4];
+        
+        // Đổi lượt + Truyền thông tin về lượt của ng chơi này cho ng chơi kia
+        String turnMsg = "TURN_THROW;" + competitorName + ";" + userName + ";" + roomId + ";" + angle + ";" + tmpPoint1 + ";" + tmpPoint2 + ";" + tmpPoint3 +";"+ rmnPoint;
+        System.out.println("turnMsg: ------"+ turnMsg);
+        clientManager.sendToAClient(competitorName, turnMsg);
+    }
     
     
     // GET

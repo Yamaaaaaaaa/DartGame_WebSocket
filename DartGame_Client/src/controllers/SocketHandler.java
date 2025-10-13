@@ -5,12 +5,10 @@
 package controllers;
 
 import btl_ltm_n3.Main;
-import java.awt.geom.Rectangle2D;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -35,7 +33,8 @@ public class SocketHandler {
     Thread listener = null;
     public String competitor = "";
     String roomIdPresent = null; // lưu room hiện tại mà người chơi đang ở 
-
+    public boolean checkYouAreInvited = false;
+    
     public String connect(String addr, int port){
         try {
             s = new Socket(addr, port);
@@ -94,6 +93,15 @@ public class SocketHandler {
                     case "LEAVE_TO_GAME":
                         onReceiveLeaveToGame(received);
                         break; 
+                    case "TURN_THROW":
+                        onReceiveTurnThrow(received);
+                        break;
+                    case "TURN_ROTATE":
+                        onReceiveTurnRotate(received);
+                        break;
+                    case "END_GAME":
+                        onReceiveEndGame(received);
+                        break;
                     case "EXIT":
                         running = false;
                         break;
@@ -229,6 +237,7 @@ public class SocketHandler {
                             roomIdPresent = roomId;
                             this.competitor = userHost;
                             sendData("ACCEPT_PLAY;" + userHost + ";" + userInvited + ";" + roomId);
+                            checkYouAreInvited = true;
                             Main.setRoot("startgame");
                         } catch (IOException ex) {
                             sendData("NOT_ACCEPT_PLAY;" + userHost + ";" + userInvited + ";" + roomId);
@@ -303,8 +312,51 @@ public class SocketHandler {
             });
         }
     }
-
-    
+    private void onReceiveTurnThrow(String received){
+        String[] splitted = received.split(";");
+        String userTurn = splitted[1];
+        
+        if(splitted.length == 9){
+            String competitorName = splitted[2];
+            String roomId = splitted[3];
+            String aigle = splitted[4];
+            String score1 = splitted[5];
+            String score2 = splitted[6];
+            String score3 = splitted[7];
+            String scoreRemaining = splitted[8];
+            
+            Platform.runLater(() -> {
+                Main.startGameController.updateCompetitorStatus(competitorName, roomId,aigle, score1, score2, score3, scoreRemaining);
+            });
+        }
+        Platform.runLater(() -> {
+            Main.startGameController.setTurn(userTurn);
+        });
+    }
+    private void onReceiveTurnRotate(String received){
+        String[] splitted = received.split(";");
+        String userTurn = splitted[1];
+        Platform.runLater(() -> {
+            Main.startGameController.setTurnRotate(userTurn);
+        });
+    }
+    private void onReceiveEndGame(String received){
+        String[] splitted = received.split(";");
+        String userName = splitted[1];
+        String competitorName = splitted[2];
+        String roomId = splitted[3];
+        String winnerName = splitted[4];
+        System.out.println("Trận đấu kết thúc, người chiến thắng là: " + winnerName);
+        
+         // Gọi UI hiển thị thông báo trên giao diện game
+        Platform.runLater(() -> {
+            if (Main.startGameController != null) {
+                Main.startGameController.showWinnerDialogEndGame(winnerName);
+            } else {
+                System.out.println("⚠️ Không tìm thấy StartGameController để hiển thị kết quả!");
+            }
+        });
+    }
     
     
     
