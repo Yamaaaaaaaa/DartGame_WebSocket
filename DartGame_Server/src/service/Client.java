@@ -78,6 +78,9 @@ public class Client implements Runnable{
                     case "ROTATE_RESULT":
                         onReceiveRotateResult(received);
                         break; 
+                    case "CHAT_MESSAGE": // Ng gửi, ng nhận, roomId,  message
+                        onReceiveChatMessage(received);
+                        break; 
                     case "LOGOUT":
                         onReceiveLogout();
                         break;  
@@ -334,6 +337,19 @@ public class Client implements Runnable{
         String turnMsg = "TURN_THROW;" + competitorName + ";" + userName + ";" + roomId + ";" + angle + ";" + tmpPoint1 + ";" + tmpPoint2 + ";" + tmpPoint3 +";"+ rmnPoint;
         System.out.println("turnMsg: ------"+ turnMsg);
         clientManager.sendToAClient(competitorName, turnMsg);
+    }
+    
+    public void onReceiveChatMessage(String received){
+        String[] splitted = received.split(";");
+        String userName = splitted[1];
+        String competitorName = splitted[2];
+        String roomId = splitted[3];
+        String message = splitted[4];
+        
+        String data = "CHAT_MESSAGE" + ";" + userName + ";" + competitorName + ";" + roomId + ";" + message;
+        
+        // send data
+        clientManager.sendToAClient(competitorName, data);
     }
     
     

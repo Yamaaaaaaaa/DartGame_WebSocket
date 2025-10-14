@@ -29,6 +29,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.Group;
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.VBox;
 
 public class StartGameWithBotController implements Initializable {
@@ -93,6 +94,34 @@ public class StartGameWithBotController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setupGame();
         setupButtonEffects();
+        
+        // Tối ưu hiển thị ListView (text dài tự xuống dòng, không lag)
+        chatList.setCellFactory(lv -> {
+            Label label = new Label();
+            label.setWrapText(true);
+            label.setMaxWidth(320); // Giới hạn theo width của chat pane
+            label.setStyle("-fx-font-size: 13px; -fx-padding: 5;");
+
+            ListCell<String> cell = new ListCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setGraphic(null);
+                    } else {
+                        label.setText(item);
+                        setGraphic(label);
+                    }
+                }
+            };
+
+            // ?Cho phép cell co giãn chiều cao đúng với nội dung
+            cell.setPrefWidth(0);
+            cell.setWrapText(true);
+            return cell;
+        });
+
+        chatList.setFixedCellSize(-1);
     }
 
     private void setupButtonEffects() {
@@ -673,6 +702,9 @@ public class StartGameWithBotController implements Initializable {
         if (!msg.isEmpty()) {
             chatList.getItems().add("Bạn: " + msg);
             chatInput.clear();
+
+            // Tự động tạo tin nhắn random từ đối thủ sau khi bạn gửi
+            simulateOpponentReply();
         }
     }
 
@@ -722,5 +754,30 @@ public class StartGameWithBotController implements Initializable {
         } catch (NumberFormatException e) {
             instructionLabel.setText("⚠ Nhập số hợp lệ!");
         }
+    }
+    
+     // CHAT: 
+    private void simulateOpponentReply() {
+        // Danh sách câu trả lời ngẫu nhiên
+        String[] replies = {
+            "Haha, ném trúng chưa đó? Haha, ném trúng chưa đó? Haha, ném trúng chưa đó?",
+            "Tới lượt tôi nè!",
+            "Wow, bạn giỏi quá!",
+            "Đừng xoay bàn nhiều quá nhé 😆",
+            "Good luck!",
+            "Ồ, điểm đó cao đấy!",
+            "Lần này tôi thắng chắc rồi!",
+            "Ném lệch rồi kìa 😂"
+        };
+
+        // Random 1 câu
+        int randomIndex = (int) (Math.random() * replies.length);
+        String reply = replies[randomIndex];
+
+        // Hiển thị sau 1–2 giây để giống người thật
+        Timeline delay = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
+            chatList.getItems().add("Computer" + ": " + reply);
+        }));
+        delay.play();
     }
 }

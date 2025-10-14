@@ -99,6 +99,9 @@ public class SocketHandler {
                     case "TURN_ROTATE":
                         onReceiveTurnRotate(received);
                         break;
+                    case "CHAT_MESSAGE": // Ng gửi, ng nhận, roomId,  message
+                        onReceiveChatMessage(received);
+                        break; 
                     case "END_GAME":
                         onReceiveEndGame(received);
                         break;
@@ -357,7 +360,21 @@ public class SocketHandler {
             }
         });
     }
-    
+    public void onReceiveChatMessage(String received){
+        String[] splitted = received.split(";");
+        String sendName = splitted[1];
+        String competitorName = splitted[2];
+        String roomId = splitted[3];
+        String message = splitted[4];
+                
+        // set chat vào giao diện (check đúng room - compe tránh lỗi)
+        if(sendName.equals(competitor) && roomId.equals(roomIdPresent) && Main.startGameController != null){
+            Platform.runLater(() -> {
+                Main.startGameController.addMessage(sendName + ": " + message);
+            });
+        }
+        else System.out.println("Cõ lối xảy ra");
+    }
     
     
     // ------------------------------------------------------------------------
