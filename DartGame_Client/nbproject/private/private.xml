@@ -3,8 +3,9 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/E:/DartGame_JavaFX/DartsGame/DartGame_Client/src/views/startgame.fxml</file>
+            <file>file:/E:/DartGame_JavaFX/DartsGame/DartGame_Client/src/controllers/StartGameController.java</file>
             <file>file:/E:/DartGame_JavaFX/DartsGame/DartGame_Client/src/controllers/SocketHandler.java</file>
-            <file>file:/E:/DartGame_JavaFX/DartsGame/DartGame_Client/src/btl_ltm_n3/Main.java</file>
         </group>
     </open-files>
 </project-private>
