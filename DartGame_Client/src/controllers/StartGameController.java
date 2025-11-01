@@ -32,6 +32,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.Group;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.VBox;
+import javafx.scene.transform.Rotate;
 
 public class StartGameController implements Initializable {
 
@@ -365,7 +366,7 @@ public class StartGameController implements Initializable {
 
         // Vẽ phi tiêu
         Circle dart = new Circle(dartX, dartY, 3, Color.PURPLE);
-        gamePane.getChildren().add(dart);
+        dartboardGroup.getChildren().add(dart);
         darts.add(dart);
 
         // Ẩn line
@@ -672,7 +673,7 @@ public class StartGameController implements Initializable {
         try {
             double angle = Double.parseDouble(angleInput.getText().trim());
             boardRotation += angle;
-            dartboardGroup.setRotate(boardRotation); // Xoay dartboard
+            applyBoardRotation(boardRotation); // dùng transform với pivot cố định
             instructionLabel.setText("Bàn đã xoay " + angle + "°");
             angleInput.clear();
             
@@ -728,7 +729,7 @@ public class StartGameController implements Initializable {
         opponentScoreText.setText(String.valueOf(opponentScore));
     
         boardRotation += Double.parseDouble(aigle);
-        dartboardGroup.setRotate(boardRotation); // xoay group dartboard, ko xoay cả gamePane
+        applyBoardRotation(boardRotation);
     }
 
 
@@ -755,5 +756,11 @@ public class StartGameController implements Initializable {
             chatList.getItems().add(socketHandler.competitor + ": " + reply);
         }));
         delay.play();
+    }
+    private void applyBoardRotation(double degrees) {
+    // Remove previous Rotate transforms on the group (nếu có)
+        dartboardGroup.getTransforms().removeIf(t -> t instanceof Rotate);
+        // Add a new Rotate transform with explicit pivot at CENTER_X, CENTER_Y
+        dartboardGroup.getTransforms().add(new Rotate(degrees, CENTER_X, CENTER_Y));
     }
 }
