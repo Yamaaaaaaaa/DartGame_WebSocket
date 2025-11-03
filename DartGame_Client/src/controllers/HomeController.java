@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import java.util.Optional;
+import javafx.scene.control.Button;
 
 public class HomeController {
 
@@ -19,7 +20,20 @@ public class HomeController {
 
     @FXML
     private Label usernameLabel;
+    @FXML
+    private Button btnToggleMusic;
 
+    private boolean isMusicPlaying = true;
+
+    @FXML
+    public void handleToggleMusic() {
+        Main.toggleBackgroundMusic();
+        
+
+        // Đổi icon tương ứng trạng thái
+        isMusicPlaying = !isMusicPlaying;
+        btnToggleMusic.setText(isMusicPlaying ? "🎵" : "🔇");
+    }
     @FXML
     public void initialize() {
         // Đặt background bằng hình ảnh
