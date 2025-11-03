@@ -14,6 +14,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import models.User;
 /**
@@ -53,13 +55,38 @@ public class Main extends Application {
         stage.setTitle("JavaFX Login/Register Demo");
         stage.show();
 
+        // Gắn sự kiện khi người dùng tắt app
+        stage.setOnCloseRequest(event -> {
+            event.consume(); // Ngăn chặn tắt app ngay lập tức
+
+            // Gọi hàm xác nhận
+            handleExitConfirmation();
+        });
+        
         // Tạo kết nối Socket
         socketHandler = new SocketHandler();
         socketHandler.connect("localhost", 99); // Tạm thời gọi ở đây, nao có thể làm 1 cái UI để điển Host - Port
     }
     
+    private void handleExitConfirmation() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Xác nhận thoát");
+        alert.setHeaderText("Bạn có chắc muốn thoát ứng dụng không?");
+        alert.setContentText("Chọn OK để thoát, Cancel để ở lại.");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                socketHandler.logout();
+                                
+                Platform.exit(); // Tắt ứng dụng (cái này sẽ giúp tắt luôn cả tiến trình chạy)
+                System.exit(0);
+            } else {
+                System.out.println("Người dùng chọn: Ở lại ứng dụng");
+            }
+        });
+    }
  
-      // 🔹 Load scene và lưu controller nếu cần
+      // ?Load scene và lưu controller nếu cần
     public static void setRoot(String fxml) throws IOException {
         FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/" + fxml + ".fxml"));
         Parent root = loader.load();

@@ -15,8 +15,9 @@
          1. `http://youtube.com/watch?v=WQZpIZeHzLM&t=59s`
 2. Database:
    1. Dùng Mysql (DBMS thì XAMPP hoặc Workbench đều được)
-   2. Tạo DB dart_socket_game với bảng Users với các cột sau (check kiểu dl trong code):
+   2. Tạo DB dart_socket_game với bảng Users với các cột sau:
       1. ![alt text](image-5.png)
+      2. ![alt text](image-7.png)
    3. Đổi mkhau - tkhoanr db trong code (dbconnection.java)
       1. ![alt text](image-6.png)
 3. KHởi chạy:

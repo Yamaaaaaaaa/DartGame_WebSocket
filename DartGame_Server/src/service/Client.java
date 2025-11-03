@@ -130,9 +130,15 @@ public class Client implements Runnable{
         String[] splitted = received.split(";");
         String username = splitted[1];
         String password = splitted[2];
-
+        String result = "";
+        // Check xem ng dùng đã đăng nhập chưa:
+        if(clientManager.find(username) != null){
+            result = "failed;" + "Người dùng đẫ đăng nhập ở thiết bị khác. Vui lòng đăng xuất khởi các thiết bị trước khi đăng nhập lại";
+            sendData("LOGIN" + ";" + result);
+            return;
+        }
         // check login
-        String result = new UserController().login(username, password);
+        result = new UserController().login(username, password);
 
         if (result.split(";")[0].equals("success")) {
             // set login user
@@ -266,6 +272,9 @@ public class Client implements Runnable{
 
         joinedRoom.userLeaveGame(host);
         
+        // Update điểm sau khi rời phòng
+        String result = new UserController().increaseScore(invited);
+
         this.cCompetitor = null;
         this.joinedRoom = null;
         Room room = roomManager.find(roomId);
@@ -371,5 +380,6 @@ public class Client implements Runnable{
     public void setcCompetitor(Client cCompetitor) {
         this.cCompetitor = cCompetitor;
     }
+    
     
 }

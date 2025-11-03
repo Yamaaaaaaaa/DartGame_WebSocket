@@ -7,8 +7,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane  id="AnchorPane" prefHeight="800" prefWidth="600" styleClass="mainFxmlClass" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controllers.RankingController">
-   <!-- Header -->
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:id="rootPane"
+            fx:controller="controllers.RankingController"
+            prefHeight="800" prefWidth="600">
+
     <top>
         <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
             <Button text="← Quay lại" onAction="#handleBack"/>
@@ -16,8 +20,8 @@
         </HBox>
     </top>
 
-    <!-- Nội dung -->
     <center>
         <Label text="Giao diện bảng xếp hạng" style="-fx-font-size: 18px;"/>
     </center>
-</BorderPane >
+</BorderPane>
+

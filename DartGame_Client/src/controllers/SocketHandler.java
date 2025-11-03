@@ -15,6 +15,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -65,7 +66,7 @@ public class SocketHandler {
             try {
                 // Nhận Dữ liệu - Phản hồi - Request từ Server
                 String received = dis.readUTF();
-                System.out.println("RECEIVED: " + received);
+                System.out.println("YOU: ("+ loginUser +") RECEIVED: " + received);
 
                 String type = received.split(";")[0];
                 switch (type) {
@@ -120,25 +121,42 @@ public class SocketHandler {
     // ------------------------------------------------------------------------
     // RECEIVE: 
     private void onReceiveLogin(String received) {
-        // get status from data
+    // get status from data
         String[] splitted = received.split(";");
         String status = splitted[1];
 
-        if (status.equals("failed")) {
-            // hiển thị lỗi
-            String failedMsg = splitted[2];
-            System.out.println("Đăng nhập Lỗi, vui lòng kiểm tra lại tài khoản - mật khẩu: "+ failedMsg); // Cần UI: Text Cảnh Báo
-        } else if (status.equals("success")) {
-            // lưu user login
-            this.loginUser = splitted[2];
-            System.out.println("Đăng nhập thành công");
-            try {
-                Main.setRoot("home");
-            } catch (Exception ex) {
-                System.out.println("Trang không tồn tại, kiểm tra lại Router App"); // Cần UI: Trang Notfound
+        Platform.runLater(() -> {
+            if (status.equals("failed")) {
+                // hiển thị lỗi
+                String failedMsg = splitted.length > 2 ? splitted[2] : "Tên đăng nhập hoặc mật khẩu không đúng.";
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Đăng nhập thất bại");
+                alert.setHeaderText(null);
+                alert.setContentText(failedMsg);
+                alert.showAndWait();
+            } else if (status.equals("success")) {
+                // lưu user login
+                this.loginUser = splitted[2];
+
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Đăng nhập thành công");
+                alert.setHeaderText(null);
+                alert.setContentText("Chào mừng " + loginUser + " quay lại!");
+                alert.showAndWait();
+
+                try {
+                    Main.setRoot("home");
+                } catch (Exception ex) {
+                    Alert alertError = new Alert(Alert.AlertType.ERROR);
+                    alertError.setTitle("Lỗi giao diện");
+                    alertError.setHeaderText(null);
+                    alertError.setContentText("Không tìm thấy trang Home. Vui lòng kiểm tra lại.");
+                    alertError.showAndWait();
+                }
             }
-        }
+        });
     }
+
     
     private void onReceiveRegister(String received) {
         // get status from data
@@ -146,18 +164,38 @@ public class SocketHandler {
         String status = splitted[1];
 
         if (status.equals("failed")) {
-            // hiển thị lỗi
-            String failedMsg = splitted[2];
-            System.out.println("Đăng kí bị lỗi, vui lòng kiểm tra lại: "+ failedMsg); // Cần UI: Text Cảnh Báo
+            // hiển thị lỗi bằng Alert
+            String failedMsg = splitted.length > 2 ? splitted[2] : "Lỗi không xác định.";
+
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Đăng ký thất bại");
+                alert.setHeaderText("Không thể đăng ký tài khoản");
+                alert.setContentText("Vui lòng kiểm tra lại: " + failedMsg);
+                alert.showAndWait();
+            });
 
         } else if (status.equals("success")) {
-            try {
-                 Main.setRoot("login");
-            } catch (Exception ex) {
-                System.out.println("Trang không tồn tại, kiểm tra lại Router App"); // Cần UI: Trang Notfound
-            }
+            Platform.runLater(() -> {
+                try {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Thành công");
+                    alert.setHeaderText("Đăng ký thành công!");
+                    alert.setContentText("Bạn sẽ được chuyển về trang đăng nhập.");
+                    alert.showAndWait();
+
+                    Main.setRoot("login");
+                } catch (Exception ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Lỗi hệ thống");
+                    alert.setHeaderText("Không tìm thấy trang Login");
+                    alert.setContentText("Vui lòng kiểm tra lại đường dẫn hoặc liên hệ quản trị viên.");
+                    alert.showAndWait();
+                }
+            });
         }
     }
+
     
     private void onReceiveLogout(String received) {
         // get status from data

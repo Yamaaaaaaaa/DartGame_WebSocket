@@ -30,6 +30,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.Group;
 import javafx.scene.control.ListCell;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
 public class StartGameWithBotController implements Initializable {
@@ -90,38 +92,59 @@ public class StartGameWithBotController implements Initializable {
     private Text[] computerTurnTexts = new Text[3];
 //    private Text winnerText;
 
+    @FXML private BorderPane rootPane;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setupGame();
         setupButtonEffects();
         
-        // Tối ưu hiển thị ListView (text dài tự xuống dòng, không lag)
+        var bgImage = new javafx.scene.image.Image(
+            getClass().getResource("/images/background.jpg").toExternalForm()
+        );
+        var bg = new javafx.scene.layout.BackgroundImage(
+            bgImage,
+            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+            javafx.scene.layout.BackgroundPosition.CENTER,
+            new javafx.scene.layout.BackgroundSize(100, 100, true, true, true, false)
+        );
+        rootPane.setBackground(new javafx.scene.layout.Background(bg));
+        
+        
+//        // Tối ưu hiển thị ListView (text dài tự xuống dòng, không lag)
         chatList.setCellFactory(lv -> {
-            Label label = new Label();
-            label.setWrapText(true);
-            label.setMaxWidth(320); // Giới hạn theo width của chat pane
-            label.setStyle("-fx-font-size: 13px; -fx-padding: 5;");
+           Label label = new Label();
+           label.setWrapText(true);
+           label.setMaxWidth(320); // Giới hạn theo width của chat pane
+           label.setStyle("-fx-font-size: 13px; -fx-padding: 5; -fx-text-fill: #000000;");
 
-            ListCell<String> cell = new ListCell<>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setGraphic(null);
-                    } else {
-                        label.setText(item);
-                        setGraphic(label);
-                    }
-                }
-            };
+           ListCell<String> cell = new ListCell<>() {
+               @Override
+               protected void updateItem(String item, boolean empty) {
+                   super.updateItem(item, empty);
+                   if (empty || item == null) {
+                       setGraphic(null);
+                   } else {
+                       label.setText(item);
+                       setGraphic(label);
+                   }
+               }
+           };
 
-            // ?Cho phép cell co giãn chiều cao đúng với nội dung
-            cell.setPrefWidth(0);
-            cell.setWrapText(true);
-            return cell;
-        });
+           // ?Cho phép cell co giãn chiều cao đúng với nội dung
+           cell.setPrefWidth(0);
+           cell.setWrapText(true);
+           return cell;
+       });
 
-        chatList.setFixedCellSize(-1);
+        gamePane.setStyle("-fx-background-color: transparent;");
+        chatList.setStyle("-fx-control-inner-background: transparent; "
+                + "-fx-background-color: transparent; "
+                + "-fx-background-insets: 0;");
+//        label.setStyle("-fx-font-size: 13px; -fx-padding: 5; -fx-text-fill: white;");
+        scoreboardPane.setStyle("-fx-background-color: transparent;");
+        botTurnOverlay.setStyle("-fx-background-color: transparent;");
+
     }
 
     private void setupButtonEffects() {

@@ -17,7 +17,7 @@ public class UserController {
     // 1 controller này quản lý 1 người dùng thôi
     
     //  SQL
-    private final String INSERT_USER = "INSERT INTO users (username, password) VALUES (?, ?)";
+    private final String INSERT_USER = "INSERT INTO users (username, password, score) VALUES (?, ?, 0)";
     
     private final String CHECK_USER = "SELECT id from users WHERE username = ? limit 1";
     

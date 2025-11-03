@@ -10,9 +10,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import service.Client;
 import service.ClientManager;
@@ -36,6 +39,14 @@ public class DartGame_Server extends Application {
             primaryStage.setScene(scene);
             primaryStage.show();
 
+             // Gắn sự kiện khi người dùng tắt app
+            primaryStage.setOnCloseRequest(event -> {
+                event.consume(); // Ngăn chặn tắt app ngay lập tức
+
+                // Gọi hàm xác nhận
+                handleExitConfirmation();
+            });
+        
             // chạy server socket trên thread riêng
             new Thread(DartGame_Server::startServer).start();
 
@@ -44,6 +55,21 @@ public class DartGame_Server extends Application {
         }
     }
 
+    private void handleExitConfirmation() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Xác nhận thoát");
+        alert.setHeaderText("Bạn có chắc muốn đóng SERVER không?");
+        alert.setContentText("Chọn OK để thoát, Cancel để ở lại.");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {                                
+                Platform.exit(); // Tắt ứng dụng (cái này sẽ giúp tắt luôn cả tiến trình chạy)
+                System.exit(0);
+            } else {
+                System.out.println("Người dùng chọn: Ở lại");
+            }
+        });
+    }
     public static void startServer() {
         try {
             int port = 99;

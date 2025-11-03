@@ -6,19 +6,39 @@
 
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
+            fx:id="rootPane"
             fx:controller="controllers.HomeController"
-            prefWidth="800" prefHeight="600">
+            prefWidth="900" prefHeight="600">
 
-    <VBox alignment="CENTER" spacing="15.0" 
-          AnchorPane.topAnchor="50" 
-          AnchorPane.leftAnchor="50" 
-          AnchorPane.rightAnchor="50">
+    <!-- Label tên người dùng -->
+    <Label fx:id="usernameLabel"
+           text="Username"
+           style="-fx-font-size: 16px; -fx-text-fill: black; -fx-font-weight: bold;"
+           AnchorPane.topAnchor="20"
+           AnchorPane.rightAnchor="30"/>
 
-        <Label text="Chào mừng bạn đã đăng nhập!" style="-fx-font-size: 18px;"/>
-
-        <Button text="Bắt đầu game" onAction="#handleStartGame" maxWidth="200"/>
-        <Button text="Test giao diện game" onAction="#handleClickStartGameWithBot" maxWidth="200"/>
-        <Button text="Bảng xếp hạng" onAction="#handleRanking" maxWidth="200"/>
-        <Button text="Đăng xuất" onAction="#handleLogout" maxWidth="200"/>
+    <!-- Tiêu đề -->
+    <VBox alignment="CENTER" spacing="15"
+          AnchorPane.topAnchor="120"
+          AnchorPane.leftAnchor="0"
+          AnchorPane.rightAnchor="0">
+        <Label text="Chào mừng bạn đến với Game Phi Tiêu "
+               style="-fx-font-size: 24px; -fx-text-fill: black; -fx-font-weight: bold;"/>
     </VBox>
+
+    <!-- Các nút chức năng -->
+    <VBox alignment="CENTER" spacing="12"
+          AnchorPane.topAnchor="220"
+          AnchorPane.leftAnchor="0"
+          AnchorPane.rightAnchor="0">
+        <Button text="Bắt đầu game" onAction="#handleStartGame"
+                maxWidth="200" style="-fx-font-size: 14px; -fx-background-color: rgba(255,255,255,0.7); -fx-text-fill: black;"/>
+        <Button text="Chơi với Bot" onAction="#handleClickStartGameWithBot"
+                maxWidth="200" style="-fx-font-size: 14px; -fx-background-color: rgba(255,255,255,0.7); -fx-text-fill: black;"/>
+        <Button text="Bảng xếp hạng" onAction="#handleRanking"
+                maxWidth="200" style="-fx-font-size: 14px; -fx-background-color: rgba(255,255,255,0.7); -fx-text-fill: black;"/>
+        <Button text="Đăng xuất" onAction="#handleLogout"
+                maxWidth="200" style="-fx-font-size: 14px; -fx-background-color: rgba(255,0,0,0.7); -fx-text-fill: white;"/>
+    </VBox>
+
 </AnchorPane>

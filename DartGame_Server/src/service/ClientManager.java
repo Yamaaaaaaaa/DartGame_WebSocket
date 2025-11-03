@@ -45,9 +45,14 @@ public class ClientManager {
     }
 
     public void broadcast(String msg) {
+        System.out.println("List Usee online: ");
+        for (Client c : clients) {
+            System.out.println(c.loginUser + " ");
+        }
         clients.forEach((c) -> {
             c.sendData(msg);
         });
+        System.out.println("===========================");
     }
 
     public void sendToAClient (String username, String msg) {
@@ -62,6 +67,7 @@ public class ClientManager {
         for(int i = 0; i < clients.size(); i++) {
             result += clients.get(i).getLoginUser() + ";";
         }
+        System.out.println("ReSult: "+ result);
         return result;
     }
 }

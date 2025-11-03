@@ -31,6 +31,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.Group;
 import javafx.scene.control.ListCell;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.transform.Rotate;
 
@@ -91,17 +92,31 @@ public class StartGameController implements Initializable {
     private Text[] playerTurnTexts = new Text[3];
     private Text[] opponentTurnTexts = new Text[3];
 
+    @FXML private BorderPane rootPane;
+     
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setupGame();
         setupButtonEffects();
+        
+        var bgImage = new javafx.scene.image.Image(
+            getClass().getResource("/images/background.jpg").toExternalForm()
+        );
+        var bg = new javafx.scene.layout.BackgroundImage(
+            bgImage,
+            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+            javafx.scene.layout.BackgroundRepeat.NO_REPEAT,
+            javafx.scene.layout.BackgroundPosition.CENTER,
+            new javafx.scene.layout.BackgroundSize(100, 100, true, true, true, false)
+        );
+        rootPane.setBackground(new javafx.scene.layout.Background(bg));
         
         // Tối ưu hiển thị ListView (text dài tự xuống dòng, không lag)
         chatList.setCellFactory(lv -> {
             Label label = new Label();
             label.setWrapText(true);
             label.setMaxWidth(320); // Giới hạn theo width của chat pane
-            label.setStyle("-fx-font-size: 13px; -fx-padding: 5;");
+            label.setStyle("-fx-font-size: 13px; -fx-padding: 5; -fx-text-fill: black;");
 
             ListCell<String> cell = new ListCell<>() {
                 @Override
@@ -123,6 +138,13 @@ public class StartGameController implements Initializable {
         });
 
         chatList.setFixedCellSize(-1);
+        gamePane.setStyle("-fx-background-color: transparent;");
+        chatList.setStyle("-fx-control-inner-background: transparent; "
+                + "-fx-background-color: transparent; "
+                + "-fx-background-insets: 0;");
+//        label.setStyle("-fx-font-size: 13px; -fx-padding: 5; -fx-text-fill: white;");
+        scoreboardPane.setStyle("-fx-background-color: transparent;");
+        botTurnOverlay.setStyle("-fx-background-color: transparent;");
     }
 
     private void setupButtonEffects() {
@@ -584,7 +606,7 @@ public class StartGameController implements Initializable {
     public void handleBack() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Xác nhận thoát game");
-        alert.setHeaderText("Bạn có chắc chắn muốn thoát game không?");
+        alert.setHeaderText("Nếu thoát game, bạn sẽ bị xử thua ván này. Bạn có chắc chắn muốn thoát?");
         alert.setContentText("Hãy chọn hành động của bạn.");
 
         ButtonType buttonXacNhan = new ButtonType("Xác nhận");
@@ -595,6 +617,7 @@ public class StartGameController implements Initializable {
         alert.showAndWait().ifPresent(response -> {
             if (response == buttonXacNhan) {
                 try {
+                    socketHandler.leaveGame();
                     Main.setRoot("home"); // Quay lại màn hình home
                 } catch (Exception e) {
                     e.printStackTrace();
