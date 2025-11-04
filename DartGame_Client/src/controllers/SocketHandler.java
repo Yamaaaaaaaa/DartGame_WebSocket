@@ -82,6 +82,15 @@ public class SocketHandler {
                     case "GET_LIST_ONLINE":
                         onReceiveGetListOnline(received);
                         break;
+                    case "GET_LEADERBOARD":
+                        onReceiveGetLeaderboard(received);
+                        break;
+                    case "GET_USER_RANK":
+                        onReceiveGetUserRank(received);
+                        break;
+                    case "GET_USER_STATS":
+                        onReceiveGetUserStats(received);
+                        break;
                     case "INVITE_TO_PLAY":
                         onReceiveInviteToPlay(received);
                         break;
@@ -414,6 +423,104 @@ public class SocketHandler {
         else System.out.println("Cõ lối xảy ra");
     }
     
+    /**
+     * Nhận dữ liệu bảng xếp hạng từ server
+     * Format đơn giản: GET_LEADERBOARD;success;count;player1Data;player2Data;...
+     * playerData: userId|username|score
+     */
+    private void onReceiveGetLeaderboard(String received) {
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if (status.equals("success")) {
+            int count = Integer.parseInt(splitted[2]);
+            
+            // Xóa dữ liệu cũ
+            Main.leaderboardData.clear();
+            
+            // Parse dữ liệu từng player: userId|username|score
+            for (int i = 0; i < count; i++) {
+                String playerData = splitted[3 + i];
+                Main.leaderboardData.add(playerData);
+            }
+            
+            System.out.println("✅ Received leaderboard data: " + count + " players");
+            
+            // Cập nhật UI nếu RankingController đã được khởi tạo
+            Platform.runLater(() -> {
+                if (Main.rankingController != null) {
+                    Main.rankingController.updateLeaderboardTable();
+                }
+            });
+            
+        } else {
+            String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
+            System.err.println("❌ Failed to get leaderboard: " + errorMsg);
+            
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Lỗi");
+                alert.setHeaderText("Không thể tải bảng xếp hạng");
+                alert.setContentText(errorMsg);
+                alert.showAndWait();
+            });
+        }
+    }
+    
+    /**
+     * Nhận thứ hạng của user từ server
+     * Format: GET_USER_RANK;success;rank hoặc GET_USER_RANK;failed;error
+     */
+    private void onReceiveGetUserRank(String received) {
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if (status.equals("success")) {
+            int rank = Integer.parseInt(splitted[2]);
+            System.out.println("✅ Your rank: " + rank);
+            
+            // Cập nhật UI
+            Platform.runLater(() -> {
+                if (Main.rankingController != null) {
+                    Main.rankingController.updateUserRank(rank);
+                }
+            });
+            
+        } else {
+            String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
+            System.err.println("❌ Failed to get user rank: " + errorMsg);
+        }
+    }
+    
+    /**
+     * Nhận thống kê của user từ server
+     * Format đơn giản: GET_USER_STATS;success;username|score
+     */
+    private void onReceiveGetUserStats(String received) {
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+        
+        if (status.equals("success")) {
+            String statsData = splitted[2];
+            String[] stats = statsData.split("\\|");
+            
+            System.out.println("✅ User stats received:");
+            System.out.println("  Username: " + stats[0]);
+            System.out.println("  Score: " + stats[1]);
+            
+            // Cập nhật UI
+            Platform.runLater(() -> {
+                if (Main.rankingController != null) {
+                    Main.rankingController.updateUserStats(statsData);
+                }
+            });
+            
+        } else {
+            String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
+            System.err.println("❌ Failed to get user stats: " + errorMsg);
+        }
+    }
+    
     
     // ------------------------------------------------------------------------
     // SEND:
@@ -456,6 +563,30 @@ public class SocketHandler {
     }
     public void leaveGame(){
         sendData("LEAVE_TO_GAME;" + loginUser + ";" + competitor + ";" + roomIdPresent);
+    }
+    
+    /**
+     * Gửi request lấy bảng xếp hạng
+     * @param limit Số lượng người chơi muốn lấy (mặc định 100)
+     */
+    public void getLeaderboard(int limit) {
+        sendData("GET_LEADERBOARD;" + limit);
+    }
+    
+    /**
+     * Gửi request lấy thứ hạng của user
+     * @param username Tên người chơi
+     */
+    public void getUserRank(String username) {
+        sendData("GET_USER_RANK;" + username);
+    }
+    
+    /**
+     * Gửi request lấy thống kê của user
+     * @param username Tên người chơi
+     */
+    public void getUserStats(String username) {
+        sendData("GET_USER_STATS;" + username);
     }
     
     
