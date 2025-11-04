@@ -92,7 +92,7 @@ public class Main extends Application {
     public static void playBackgroundMusic() {
         try {
             if (backgroundPlayer == null) {
-                String path = Main.class.getResource("/musics/background.mp3").toExternalForm();
+                String path = Main.class.getResource("/musics/background_bb_0.mp3").toExternalForm();
                 Media media = new Media(path);
                 backgroundPlayer = new MediaPlayer(media);
                 backgroundPlayer.setCycleCount(MediaPlayer.INDEFINITE); // lặp vô hạn

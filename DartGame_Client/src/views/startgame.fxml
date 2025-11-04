@@ -17,7 +17,17 @@
         <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
             <Button text="← Quay lại" onAction="#handleBack"/>
             <Label text="Dart Game 301" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-        </HBox>
+            <Pane HBox.hgrow="ALWAYS"/> <!-- đẩy nút sang bên phải -->
+            <Button fx:id="soundButton"
+                    text="🔊"
+                    onAction="#toggleSound"
+                    style="-fx-background-color: rgba(255,255,255,0.6); 
+                           -fx-text-fill: black;
+                           -fx-font-size: 14px;
+                           -fx-background-radius: 8px; 
+                           -fx-padding: 5 10;
+                           -fx-cursor: hand;"/>
+            </HBox>
     </top>
 
     <!-- Updated main layout -->

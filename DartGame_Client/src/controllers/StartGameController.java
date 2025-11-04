@@ -60,6 +60,11 @@ public class StartGameController implements Initializable {
 
     @FXML
     private VBox botTurnOverlay;
+    
+    @FXML
+    private Button soundButton;
+
+    private boolean soundOn = true;
 
     private double boardRotation = 0; // Góc xoay hiện tại
 
@@ -785,5 +790,20 @@ public class StartGameController implements Initializable {
         dartboardGroup.getTransforms().removeIf(t -> t instanceof Rotate);
         // Add a new Rotate transform with explicit pivot at CENTER_X, CENTER_Y
         dartboardGroup.getTransforms().add(new Rotate(degrees, CENTER_X, CENTER_Y));
+    }
+    
+    
+
+    @FXML
+    private void toggleSound() {
+        soundOn = !soundOn;
+
+        if (soundOn) {
+            soundButton.setText("🔊");
+            Main.playBackgroundMusic(); // bật lại nhạc (nếu đang tắt)
+        } else {
+            soundButton.setText("🔇");
+            Main.stopBackgroundMusic(); // tắt hẳn nhạc
+        }
     }
 }
