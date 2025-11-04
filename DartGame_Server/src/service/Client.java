@@ -4,6 +4,7 @@
  */
 package service;
 
+import controller.LeaderboardController;
 import controller.UserController;
 import static dartgame_server.DartGame_Server.clientManager;
 import static dartgame_server.DartGame_Server.isShutDown;
@@ -56,6 +57,15 @@ public class Client implements Runnable{
                         break;
                     case "GET_LIST_ONLINE":
                         onReceiveGetListOnline();
+                        break;
+                    case "GET_LEADERBOARD":
+                        onReceiveGetLeaderboard(received);
+                        break;
+                    case "GET_USER_RANK":
+                        onReceiveGetUserRank(received);
+                        break;
+                    case "GET_USER_STATS":
+                        onReceiveGetUserStats(received);
                         break;
 //                    case "GET_INFO_USER":
 //                        onReceiveGetInfoUser(received);
@@ -359,6 +369,45 @@ public class Client implements Runnable{
         
         // send data
         clientManager.sendToAClient(competitorName, data);
+    }
+    
+    /**
+     * Xử lý request lấy bảng xếp hạng
+     * Format: GET_LEADERBOARD;limit hoặc GET_LEADERBOARD
+     */
+    private void onReceiveGetLeaderboard(String received) {
+        LeaderboardController leaderboardController = new LeaderboardController();
+        String result = leaderboardController.handleLeaderboardRequest(received);
+        
+        // Gửi kết quả về client
+        sendData("GET_LEADERBOARD;" + result);
+        System.out.println("✅ Sent leaderboard data to client: " + loginUser);
+    }
+    
+    /**
+     * Xử lý request lấy thứ hạng của user
+     * Format: GET_USER_RANK;username
+     */
+    private void onReceiveGetUserRank(String received) {
+        LeaderboardController leaderboardController = new LeaderboardController();
+        String result = leaderboardController.handleUserRankRequest(received);
+        
+        // Gửi kết quả về client
+        sendData("GET_USER_RANK;" + result);
+        System.out.println("✅ Sent user rank data to client: " + loginUser);
+    }
+    
+    /**
+     * Xử lý request lấy thống kê của user
+     * Format: GET_USER_STATS;username
+     */
+    private void onReceiveGetUserStats(String received) {
+        LeaderboardController leaderboardController = new LeaderboardController();
+        String result = leaderboardController.handleUserStatsRequest(received);
+        
+        // Gửi kết quả về client
+        sendData("GET_USER_STATS;" + result);
+        System.out.println("✅ Sent user stats data to client: " + loginUser);
     }
     
     

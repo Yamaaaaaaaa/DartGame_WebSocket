@@ -1,6 +1,7 @@
 package btl_ltm_n3;
 
 import controllers.ChooseOpponentController;
+import controllers.RankingController;
 import controllers.SocketHandler;
 import controllers.StartGameController;
 import javafx.application.Application;
@@ -25,9 +26,11 @@ public class Main extends Application {
     private static Scene scene;
 
     public static ArrayList<User> listOnlineUser = new ArrayList<>();
+    public static ArrayList<String> leaderboardData = new ArrayList<>();
 
     public static ChooseOpponentController chooseOpponentController;
     public static StartGameController startGameController;
+    public static RankingController rankingController;
 
     // 🎵 Biến lưu trình phát nhạc
     private static MediaPlayer backgroundPlayer;
@@ -80,6 +83,9 @@ public class Main extends Application {
         }
         if (fxml.equals("startgame")) {
             startGameController = loader.getController();
+        }
+        if (fxml.equals("ranking")) {
+            rankingController = loader.getController();
         }
 
         scene.setRoot(root);
