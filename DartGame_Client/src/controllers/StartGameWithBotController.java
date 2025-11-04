@@ -666,7 +666,7 @@ public class StartGameWithBotController implements Initializable {
         
         // Player rows
         Text player1Name = new Text(padding + 30, padding + 40, socketHandler.loginUser);
-        Text computerName = new Text(padding + 30, padding + 70, socketHandler.competitor);
+        Text computerName = new Text(padding + 30, padding + 70, "Computer");
         
         player1Name.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         computerName.setFont(Font.font("Arial", FontWeight.BOLD, 12));
@@ -709,8 +709,8 @@ public class StartGameWithBotController implements Initializable {
             if (response == buttonXacNhan) {
                 try {
                     Main.setRoot("home"); // Quay lại màn hình home
-                    socketHandler.leaveGame();
-                    socketHandler.setRoomIdPresent(null);
+//                    socketHandler.leaveGame();
+//                    socketHandler.setRoomIdPresent(null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

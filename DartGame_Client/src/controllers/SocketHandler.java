@@ -425,7 +425,7 @@ public class SocketHandler {
     
     /**
      * Nhận dữ liệu bảng xếp hạng từ server
-     * Format đơn giản: GET_LEADERBOARD;success;count;player1Data;player2Data;...
+     * Format: GET_LEADERBOARD;success;count;player1Data;player2Data;...
      * playerData: userId|username|score
      */
     private void onReceiveGetLeaderboard(String received) {
@@ -444,7 +444,7 @@ public class SocketHandler {
                 Main.leaderboardData.add(playerData);
             }
             
-            System.out.println("✅ Received leaderboard data: " + count + " players");
+            System.out.println("Received leaderboard data: " + count + " players");
             
             // Cập nhật UI nếu RankingController đã được khởi tạo
             Platform.runLater(() -> {
@@ -455,7 +455,7 @@ public class SocketHandler {
             
         } else {
             String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
-            System.err.println("❌ Failed to get leaderboard: " + errorMsg);
+            System.err.println("Failed to get leaderboard: " + errorMsg);
             
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -477,7 +477,7 @@ public class SocketHandler {
         
         if (status.equals("success")) {
             int rank = Integer.parseInt(splitted[2]);
-            System.out.println("✅ Your rank: " + rank);
+            System.out.println("Your rank: " + rank);
             
             // Cập nhật UI
             Platform.runLater(() -> {
@@ -504,7 +504,7 @@ public class SocketHandler {
             String statsData = splitted[2];
             String[] stats = statsData.split("\\|");
             
-            System.out.println("✅ User stats received:");
+            System.out.println("User stats received:");
             System.out.println("  Username: " + stats[0]);
             System.out.println("  Score: " + stats[1]);
             

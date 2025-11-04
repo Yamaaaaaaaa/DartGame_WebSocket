@@ -81,8 +81,8 @@
 }
 
 /* Loading Animation */
-@keyframes pulse {
+/*@keyframes pulse {
     0% { -fx-opacity: 0.5; }
     50% { -fx-opacity: 1.0; }
     100% { -fx-opacity: 0.5; }
-}
+}*/

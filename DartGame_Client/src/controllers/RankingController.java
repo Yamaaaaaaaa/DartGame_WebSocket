@@ -109,7 +109,7 @@ public class RankingController {
                 Main.socketHandler.getUserStats(currentUser);
             }
             
-            System.out.println("📊 Đang tải dữ liệu bảng xếp hạng...");
+            System.out.println(" Đang tải dữ liệu bảng xếp hạng...");
         } else {
             showError("Lỗi kết nối", "Không thể kết nối đến server.");
         }
