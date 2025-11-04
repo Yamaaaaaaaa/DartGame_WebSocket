@@ -169,7 +169,7 @@ public class RankingController {
         });
         
         // Hiển thị trong console để debug
-        displayLeaderboardInConsole();
+        // displayLeaderboardInConsole();
     }
     
     /**
