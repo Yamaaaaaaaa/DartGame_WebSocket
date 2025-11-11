@@ -403,7 +403,7 @@ public class SocketHandler {
             if (Main.startGameController != null) {
                 Main.startGameController.showWinnerDialogEndGame(winnerName);
             } else {
-                System.out.println("⚠️ Không tìm thấy StartGameController để hiển thị kết quả!");
+                System.out.println("Không tìm thấy StartGameController để hiển thị kết quả!");
             }
         });
     }
@@ -488,7 +488,7 @@ public class SocketHandler {
             
         } else {
             String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
-            System.err.println("❌ Failed to get user rank: " + errorMsg);
+            System.err.println("Failed to get user rank: " + errorMsg);
         }
     }
     
@@ -517,7 +517,7 @@ public class SocketHandler {
             
         } else {
             String errorMsg = splitted.length > 2 ? splitted[2] : "Unknown error";
-            System.err.println("❌ Failed to get user stats: " + errorMsg);
+            System.err.println("Failed to get user stats: " + errorMsg);
         }
     }
     

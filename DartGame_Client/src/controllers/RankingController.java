@@ -149,12 +149,12 @@ public class RankingController {
                     );
                     leaderboardList.add(player);
                 } catch (NumberFormatException e) {
-                    System.err.println("❌ Error parsing player data: " + playerData);
+                    System.err.println("Error parsing player data: " + playerData);
                 }
             }
         }
         
-        System.out.println("✅ Đã cập nhật bảng xếp hạng với " + leaderboardList.size() + " người chơi");
+        System.out.println("Đã cập nhật bảng xếp hạng với " + leaderboardList.size() + " người chơi");
         
         // Cập nhật TableView trên UI thread
         Platform.runLater(() -> {
@@ -219,7 +219,7 @@ public class RankingController {
             }
         });
         
-        System.out.println("✅ Hạng của bạn: #" + rank);
+        System.out.println("Hạng của bạn: #" + rank);
     }
     
     /**
@@ -242,7 +242,7 @@ public class RankingController {
                 }
             });
             
-            System.out.println("✅ Thống kê: " + displayText);
+            System.out.println("Thống kê: " + displayText);
         }
     }
     

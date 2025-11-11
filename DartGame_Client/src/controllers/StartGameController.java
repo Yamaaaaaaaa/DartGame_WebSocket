@@ -33,6 +33,8 @@ import javafx.scene.Group;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.transform.Rotate;
 
 public class StartGameController implements Initializable {
@@ -97,6 +99,10 @@ public class StartGameController implements Initializable {
     private Text[] playerTurnTexts = new Text[3];
     private Text[] opponentTurnTexts = new Text[3];
 
+    
+    private boolean effectSoundOn = true;
+    @FXML private Button effectSoundButton;
+    
     @FXML private BorderPane rootPane;
      
     @Override
@@ -388,6 +394,7 @@ public class StartGameController implements Initializable {
     }
     
     private void throwDart() {
+        playEffect("/musics/dart.mp3");
         double dartX = lineX.getStartX();
         double dartY = lineY.getStartY();
 
@@ -442,7 +449,7 @@ public class StartGameController implements Initializable {
         // Tính khoảng cách từ tâm
         double distance = Math.sqrt(rotatedX*rotatedX + rotatedY*rotatedY);
 
-        // Kiểm tra bullseye và outer bull
+        // Kiểm tra bullseye và outer bull (tâm, 25d và 0đ)
         if (distance <= 12) return 50;
         if (distance <= 25) return 25;
         if (distance > RADIUS) return 0;
@@ -455,8 +462,9 @@ public class StartGameController implements Initializable {
         angle = angle + Math.PI/2;  // Xoay để 0° ở vị trí 12 giờ
         if (angle < 0) angle += 2 * Math.PI;  // Đảm bảo angle >= 0
         
-        double sectionAngle = 2 * Math.PI / POINTS.length;
         
+        // Tính góc của mỗi "miếng điểm số"
+        double sectionAngle = 2 * Math.PI / POINTS.length;
         // Điều chỉnh để góc nằm giữa section (vì section được vẽ từ -angleStep/2 đến +angleStep/2)
         angle = (angle + sectionAngle/2) % (2 * Math.PI);
         
@@ -466,6 +474,7 @@ public class StartGameController implements Initializable {
         if (section < 0) section = 0;
         if (section >= POINTS.length) section = POINTS.length - 1;
         
+        // Lấy ra điểm 
         int baseScore = POINTS[section];
 
         // Kiểm tra vùng double (vòng ngoài)
@@ -655,6 +664,7 @@ public class StartGameController implements Initializable {
     }
 
     public void showWinnerDialog(String leaver) {
+        playEffect("/musics/win.mp3");
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Kết thúc trận đấu");
         alert.setHeaderText(null);
@@ -675,11 +685,18 @@ public class StartGameController implements Initializable {
         });
     }
     public void showWinnerDialogEndGame(String winner) {
+        
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Kết thúc trận đấu");
         alert.setHeaderText(null);
-        if(winner.equals(socketHandler.loginUser)) alert.setContentText("Trận đấu kết thúc, Bạn là người chiến thắng");
-        else alert.setContentText("Trận đấu kết thúc, người chiến thắng là: " + winner);
+        if(winner.equals(socketHandler.loginUser)){
+            playEffect("/musics/win.mp3");
+            alert.setContentText("Trận đấu kết thúc, Bạn là người chiến thắng");
+        }
+        else{
+            playEffect("/musics/loose.mp3");
+            alert.setContentText("Trận đấu kết thúc, bạn là người thua cuộc");
+        }
 
         ButtonType leaveBtn = new ButtonType("Rời khỏi phòng", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(leaveBtn);
@@ -717,7 +734,7 @@ public class StartGameController implements Initializable {
                 startButton.setDisable(true); // không cho ném
             }
         } catch (NumberFormatException e) {
-            instructionLabel.setText("⚠ Nhập số hợp lệ!");
+            instructionLabel.setText("Nhập số hợp lệ!");
         }
     }
     
@@ -804,6 +821,23 @@ public class StartGameController implements Initializable {
         } else {
             soundButton.setText("🔇");
             Main.stopBackgroundMusic(); // tắt hẳn nhạc
+        }
+    }
+    
+    @FXML
+    private void toggleEffectSound() {
+        effectSoundOn = !effectSoundOn;
+        effectSoundButton.setText(effectSoundOn ? "💥" : "🔇FX");
+    }
+    
+    private void playEffect(String path) {
+        if (!effectSoundOn) return; // nếu tắt hiệu ứng thì không phát
+        try {
+            Media sound = new Media(getClass().getResource(path).toExternalForm());
+            MediaPlayer mediaPlayer = new MediaPlayer(sound);
+            mediaPlayer.play();
+        } catch (Exception e) {
+            System.err.println("Không thể phát âm thanh: " + path);
         }
     }
 }
