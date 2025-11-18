@@ -9,6 +9,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -108,6 +110,9 @@ public class SocketHandler {
                         break;
                     case "TURN_ROTATE":
                         onReceiveTurnRotate(received);
+                        break;
+                    case "GET_MATCH_HISTORY":
+                        onReceiveGetMatchHistory(received);
                         break;
                     case "CHAT_MESSAGE": // Ng gửi, ng nhận, roomId,  message
                         onReceiveChatMessage(received);
@@ -520,8 +525,33 @@ public class SocketHandler {
             System.err.println("Failed to get user stats: " + errorMsg);
         }
     }
-    
-    
+    private void onReceiveGetMatchHistory(String received){
+        // Format server gửi:
+        // GET_MATCH_HISTORY;success;count;match1;match2;match3;...
+
+        String[] splitted = received.split(";");
+        String status = splitted[1];
+
+        if (!status.equals("success")) {
+            System.out.println("Lấy lịch sử đấu thất bại!");
+            return;
+        }
+
+        int count = Integer.parseInt(splitted[2]);
+
+        List<String> matchList = new ArrayList<>();
+
+        for (int i = 0; i < count; i++) {
+            matchList.add(splitted[3 + i]);
+        }
+
+        // Gọi controller để cập nhật bảng
+        Platform.runLater(() -> {
+            if (Main.matchHistoryController != null) {
+                Main.matchHistoryController.updateMatchHistory(matchList);
+            }
+        });
+    }
     // ------------------------------------------------------------------------
     // SEND:
     public void sendData(String data) {
@@ -588,7 +618,9 @@ public class SocketHandler {
     public void getUserStats(String username) {
         sendData("GET_USER_STATS;" + username);
     }
-    
+    public void getMatchHistory(String username) {
+        sendData("GET_MATCH_HISTORY;" + username);
+    }
     
     // Getter setter:
 

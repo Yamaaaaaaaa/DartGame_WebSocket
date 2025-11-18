@@ -15,12 +15,14 @@
          1. `http://youtube.com/watch?v=WQZpIZeHzLM&t=59s`
 2. Database:
    1. Dùng Mysql (DBMS thì XAMPP hoặc Workbench đều được)
-   2. Tạo DB dart_socket_game với bảng Users với các cột sau:
+   2. Tạo DB dart_socket_game với bảng Users, MatchHistory với các cột sau:
       1. ![alt text](image-5.png)
       2. ![alt text](image-7.png)
+      3. ![alt text](image-8.png)
+      4. ![alt text](image-9.png)
    3. Đổi mkhau - tkhoanr db trong code (dbconnection.java)
       1. ![alt text](image-6.png)
-3. KHởi chạy:
+3. Khởi chạy:
    1. Nếu muốn Test trên 1 máy:
       1. Bật Server trước => Bật 2 Client, mỗi Client đăng nhập 1 tài khoản
    2. Test trên nhiều máy:

@@ -1,6 +1,7 @@
 package btl_ltm_n3;
 
 import controllers.ChooseOpponentController;
+import controllers.MatchHistoryController;
 import controllers.RankingController;
 import controllers.SocketHandler;
 import controllers.StartGameController;
@@ -31,7 +32,7 @@ public class Main extends Application {
     public static ChooseOpponentController chooseOpponentController;
     public static StartGameController startGameController;
     public static RankingController rankingController;
-
+    public static MatchHistoryController matchHistoryController;
     // 🎵 Biến lưu trình phát nhạc
     private static MediaPlayer backgroundPlayer;
 
@@ -87,7 +88,9 @@ public class Main extends Application {
         if (fxml.equals("ranking")) {
             rankingController = loader.getController();
         }
-
+        if (fxml.equals("match_history")) {
+            matchHistoryController = loader.getController();
+        }
         scene.setRoot(root);
     }
 

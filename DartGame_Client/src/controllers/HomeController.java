@@ -96,4 +96,11 @@ public class HomeController {
             e.printStackTrace();
         }
     }
+    public void handleClickMatchHistory() {
+        try {
+            Main.setRoot("match_history");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

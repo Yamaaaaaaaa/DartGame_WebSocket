@@ -9,6 +9,7 @@ import database.DBConnection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 /**
  *
  * @author kaita
@@ -25,7 +26,11 @@ public class UserController {
     
     private final String GET_INFO_USER = "SELECT username, password FROM users WHERE username=?";
 
-    
+     // MATCH HISTORY SQL
+    private final String INSERT_HISTORY =
+        "INSERT INTO match_history (username, opponent, result, match_time) " +
+        "VALUES (?, ?, ?, ?)";
+
     //  Instance
     private final Connection con;
     
@@ -146,5 +151,57 @@ public class UserController {
             e.printStackTrace();
             return "failed;Database error: " + e.getMessage();
         }
+    }
+
+    public void saveMatchHistory(String username, String opponent, String result) {
+        try {
+            PreparedStatement p = con.prepareStatement(INSERT_HISTORY);
+
+            p.setString(1, username);
+            p.setString(2, opponent);
+            p.setString(3, result);
+            p.setObject(4, LocalDateTime.now());
+
+            p.executeUpdate();
+            p.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error saving match history: " + e.getMessage());
+        }
+    }
+    public String getMatchHistory(String username) {
+        String sql = "SELECT opponent, result, match_time FROM match_history WHERE username=? ORDER BY match_time DESC";
+        
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+
+        try {
+            PreparedStatement p = con.prepareStatement(sql);
+            p.setString(1, username);
+            ResultSet rs = p.executeQuery();
+
+            while (rs.next()) {
+                String opponent = rs.getString("opponent");
+                String result = rs.getString("result");
+                String time = rs.getString("match_time");
+
+                // mỗi trận: username|opponent|result|time
+                sb.append(username).append("|")
+                .append(opponent).append("|")
+                .append(result).append("|")
+                .append(time).append(";");
+
+                count++;
+            }
+
+            if (sb.length() > 0) {
+                sb.setLength(sb.length() - 1); // bỏ dấu ; cuối
+            }
+
+        } catch (SQLException e) {
+            return "failed;Database error";
+        }
+
+        return "success;" + count + ";" + sb.toString();
     }
 }

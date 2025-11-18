@@ -67,6 +67,9 @@ public class Client implements Runnable{
                     case "GET_USER_STATS":
                         onReceiveGetUserStats(received);
                         break;
+                    case "GET_MATCH_HISTORY":
+                        onReceiveGetMatchHistory(received);
+                        break;
 //                    case "GET_INFO_USER":
 //                        onReceiveGetInfoUser(received);
 //                        break;
@@ -335,6 +338,10 @@ public class Client implements Runnable{
             System.out.println("ALL ROOM: "+ roomManager.rooms);
             String endMsg = "END_GAME;" + userName + ";" + competitorName + ";" + roomId + ";" + userName;
             String endMsgCompetitor = "END_GAME;" + competitorName + ";" + userName + ";" + roomId + ";" + userName;
+            // Lưu lịch sử đấu
+            new UserController().saveMatchHistory(userName, competitorName, "WIN");
+            new UserController().saveMatchHistory(competitorName, userName, "LOSE");
+
             clientManager.sendToAClient(userName, endMsg);
             clientManager.sendToAClient(competitorName, endMsgCompetitor);
         }
@@ -394,7 +401,7 @@ public class Client implements Runnable{
         
         // Gửi kết quả về client
         sendData("GET_USER_RANK;" + result);
-        System.out.println("✅ Sent user rank data to client: " + loginUser);
+        System.out.println("Sent user rank data to client: " + loginUser);
     }
     
     /**
@@ -407,8 +414,20 @@ public class Client implements Runnable{
         
         // Gửi kết quả về client
         sendData("GET_USER_STATS;" + result);
-        System.out.println("✅ Sent user stats data to client: " + loginUser);
+        System.out.println("Sent user stats data to client: " + loginUser);
     }
+    private void onReceiveGetMatchHistory(String received){
+         // received format: GET_MATCH_HISTORY;username
+        String[] splitted = received.split(";");
+        String username = splitted[1];
+
+        // gọi controller
+        String result = new UserController().getMatchHistory(username);
+
+        // Gửi lại cho đúng client đã yêu cầu lịch sử
+        clientManager.sendToAClient(username, "GET_MATCH_HISTORY;" + result);
+    }
+    
     
     
     // GET
@@ -429,6 +448,6 @@ public class Client implements Runnable{
     public void setcCompetitor(Client cCompetitor) {
         this.cCompetitor = cCompetitor;
     }
-    
+
     
 }
