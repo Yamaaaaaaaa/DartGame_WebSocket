@@ -1,4 +1,26 @@
-# HƯỚNG DẪN SETUP MÔI TRƯỜNG:
+## I. GIỚI THIỆU VỀ GAME (INTRODUCTION)
+
+1. Dart game:
+
+- Là dự án bài tập lớn thuộc bộ môn Lập trình mạng của HVCNBCVT (PTIT)
+- Là 1 trò chơi mô phòng dựa trên game ném phi tiêu. Hệ thống hỗ trợ 2 chế độ chơi chính là PvC và PvE
+
+2. Công nghệ sử dụng:
+   1. Java FX
+   2. JDBC
+   3. MySQL
+3. Các chức năng chính và minh họa:
+   1. Đăng nhập đăng kí
+      - ![alt text](image-10.png)
+      - ![alt text](image-11.png)
+   2. Chơi với máy (PvC)
+      - ![alt text](image-12.png)
+   3. Mời người chơi khác (PvP)
+      - ![alt text](image-13.png)
+   4. Xem Bảng xếp hạng
+   5. Lịch sử đấu
+
+## II. HƯỚNG DẪN SETUP MÔI TRƯỜNG (SETUP TURTORIAL):
 
 1. Netbean:
    1. Thư viện:
